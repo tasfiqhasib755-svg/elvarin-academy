@@ -3,52 +3,108 @@
 
 import { useState, type FormEvent } from "react";
 
-export default function AdminLogin() {
+type Student = Record<string, unknown>;
+
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: 12,
+  marginTop: 8,
+  marginBottom: 16,
+  border: "1px solid #D8C6A0",
+  borderRadius: 8,
+  boxSizing: "border-box",
+};
+
+const buttonStyle: React.CSSProperties = {
+  padding: "12px 18px",
+  border: "none",
+  borderRadius: 8,
+  background: "#064535",
+  color: "white",
+  cursor: "pointer",
+};
+
+export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [token, setToken] = useState("");
+  const [students, setStudents] = useState<Student[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
+  const [message, setMessage] = useState("");
 
-  async function handleLogin(event: FormEvent<HTMLFormElement>) {
+  async function loadStudents(accessToken: string) {
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Supabase configuration missing.");
+    }
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/students?select=*&limit=100`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Could not load students (${response.status}).`
+      );
+    }
+
+    const data: Student[] = await response.json();
+    setStudents(data);
+  }
+
+  async function handleLogin(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
     setLoading(true);
     setMessage("");
-    setAuthorized(false);
+    setToken("");
+    setStudents([]);
 
     try {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!url || !key) {
-        throw new Error("Supabase configuration is incomplete.");
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Supabase configuration missing.");
       }
 
-      const response = await fetch(
-        `${url}/auth/v1/token?grant_type=password`,
+      const loginResponse = await fetch(
+        `${supabaseUrl}/auth/v1/token?grant_type=password`,
         {
           method: "POST",
           headers: {
+            apikey: supabaseKey,
             "Content-Type": "application/json",
-            apikey: key,
           },
           body: JSON.stringify({ email, password }),
         }
       );
 
-      const session = await response.json();
+      const session = await loginResponse.json();
 
-      if (!response.ok || !session.access_token) {
-        throw new Error("Email or password is incorrect.");
+      if (!loginResponse.ok || !session.access_token) {
+        throw new Error("Invalid email or password.");
       }
 
+      const accessToken: string = session.access_token;
+
       const adminResponse = await fetch(
-        `${url}/rest/v1/rpc/is_admin`,
+        `${supabaseUrl}/rest/v1/rpc/is_admin`,
         {
           method: "POST",
           headers: {
-            apikey: key,
-            Authorization: `Bearer ${session.access_token}`,
+            apikey: supabaseKey,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
           body: "{}",
@@ -56,17 +112,28 @@ export default function AdminLogin() {
       );
 
       if (!adminResponse.ok) {
-        throw new Error("Could not verify administrator access.");
+        throw new Error("Admin verification failed.");
       }
 
       const isAdmin = await adminResponse.json();
 
       if (isAdmin !== true) {
-        throw new Error("This account is not an administrator.");
+        throw new Error("Administrator access required.");
       }
 
-      setAuthorized(true);
-      setMessage("Administrator identity verified.");
+      setToken(accessToken);
+      setPassword("");
+      setMessage("Administrator login successful.");
+
+      try {
+        await loadStudents(accessToken);
+      } catch (error) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Could not load students."
+        );
+      }
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Login failed."
@@ -76,44 +143,71 @@ export default function AdminLogin() {
     }
   }
 
+  async function refreshStudents() {
+    if (!token) return;
+
+    setLoading(true);
+    setMessage("");
+
+    try {
+      await loadStudents(token);
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Refresh failed."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function logout() {
+    setToken("");
+    setStudents([]);
+    setPassword("");
+    setSearch("");
+    setMessage("");
+  }
+
+  const filteredStudents = students.filter((student) =>
+    Object.values(student).some((value) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
+  );
+
   return (
     <main
       style={{
         minHeight: "100vh",
         background: "#FAF8F2",
         color: "#063D32",
-        padding: "70px 20px",
+        padding: "32px 16px",
         fontFamily: "Arial, sans-serif",
       }}
     >
-      <div
-        style={{
-          maxWidth: 430,
-          margin: "auto",
-          padding: 32,
-          background: "#FFFFFF",
-          border: "1px solid #D8C6A0",
-          borderRadius: 14,
-        }}
-      >
-        <h1 style={{ color: "#064535" }}>
-          ELVARIN ACADEMY
-        </h1>
-
+      <div style={{ maxWidth: 950, margin: "auto" }}>
+        <h1>ELVARIN ACADEMY</h1>
         <p style={{ color: "#B58A40" }}>
-          Administrator Login
+          Administration Portal
         </p>
 
-        {!authorized ? (
-          <form onSubmit={handleLogin}>
+        {!token ? (
+          <form
+            onSubmit={handleLogin}
+            style={cardStyle}
+          >
+            <h2>Administrator Login</h2>
+
             <label htmlFor="email">Email</label>
             <input
               id="email"
               type="email"
               required
-              autoComplete="username"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
             />
 
@@ -122,37 +216,111 @@ export default function AdminLogin() {
               id="password"
               type="password"
               required
-              autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               style={inputStyle}
             />
 
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width: "100%",
-                padding: 14,
-                background: "#064535",
-                color: "#FFFFFF",
-                border: 0,
-                borderRadius: 7,
-                cursor: "pointer",
-              }}
+              style={buttonStyle}
             >
               {loading ? "Checking..." : "Login"}
             </button>
           </form>
         ) : (
-          <p>
-            Admin verified. Student management features
-            will be added in the next step.
-          </p>
+          <section>
+            <div style={cardStyle}>
+              <h2>Student Management</h2>
+              <p>Welcome, Administrator</p>
+
+              <p>
+                Students loaded: <strong>{students.length}</strong>
+              </p>
+              <p style={{ fontSize: 13 }}>
+                Showing up to 100 records.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                <button
+                  onClick={refreshStudents}
+                  disabled={loading}
+                  style={buttonStyle}
+                >
+                  {loading ? "Loading..." : "Refresh Students"}
+                </button>
+
+                <button
+                  onClick={logout}
+                  style={{
+                    ...buttonStyle,
+                    background: "#795548",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+
+            <div style={cardStyle}>
+              <h3>Student Directory</h3>
+
+              <input
+                placeholder="Search loaded students..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={inputStyle}
+              />
+
+              {filteredStudents.length === 0 ? (
+                <p>No matching student records.</p>
+              ) : (
+                filteredStudents.map((student, index) => (
+                  <div
+                    key={String(student.id ?? index)}
+                    style={{
+                      padding: 16,
+                      marginBottom: 12,
+                      border: "1px solid #E4D9C2",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <h4>Student {index + 1}</h4>
+
+                    {Object.entries(student).map(
+                      ([field, value]) => (
+                        <p
+                          key={field}
+                          style={{
+                            overflowWrap: "anywhere",
+                            fontSize: 14,
+                          }}
+                        >
+                          <strong>{field}: </strong>
+                          {value === null
+                            ? "—"
+                            : typeof value === "object"
+                              ? JSON.stringify(value)
+                              : String(value)}
+                        </p>
+                      )
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
         )}
 
         {message && (
-          <p role="status" style={{ marginTop: 20 }}>
+          <p role="status" style={{ marginTop: 16 }}>
             {message}
           </p>
         )}
@@ -160,8 +328,8 @@ export default function AdminLogin() {
         <a
           href="/"
           style={{
-            display: "block",
-            marginTop: 25,
+            display: "inline-block",
+            marginTop: 20,
             color: "#064535",
           }}
         >
@@ -172,12 +340,10 @@ export default function AdminLogin() {
   );
 }
 
-const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box" as const,
-  padding: 12,
-  marginTop: 8,
-  marginBottom: 20,
+const cardStyle: React.CSSProperties = {
+  padding: 24,
+  background: "#FFFFFF",
   border: "1px solid #D8C6A0",
-  borderRadius: 7,
+  borderRadius: 14,
+  marginBottom: 20,
 };
