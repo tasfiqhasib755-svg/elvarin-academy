@@ -1,385 +1,915 @@
+
 "use client";
 
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 
-type Student = {
-  id: string;
-  student_id: string;
-  full_name: string;
-  class_name: string | null;
-  section: string | null;
-  roll_number: string | null;
-  admission_date: string | null;
-  created_at: string | null;
-};
+type RecordRow = Record<string, unknown>;
+type Tab = "students" | "attendance" | "fees" | "exams" | "results" | "guardians";
+type Fields = Record<string, string>;
 
-type StudentForm = {
-  student_id: string;
-  full_name: string;
-  class_name: string;
-  section: string;
-  roll_number: string;
-  admission_date: string;
-};
+const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const API_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const TODAY = new Date().toLocaleDateString("en-CA");
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const PAGE_SIZE = 10;
+const TABS: { id: Tab; title: string }[] = [
+  { id: "students", title: "Students" },
+  { id: "attendance", title: "Attendance" },
+  { id: "fees", title: "Fees" },
+  { id: "exams", title: "Exams" },
+  { id: "results", title: "Results" },
+  { id: "guardians", title: "Guardians" },
+];
 
-function localDate() {
-  const date = new Date();
-  const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
-}
-
-function blankForm(): StudentForm {
-  return {
+const initial: Record<Tab, Fields> = {
+  students: {
     student_id: "",
     full_name: "",
     class_name: "",
     section: "",
     roll_number: "",
-    admission_date: localDate(),
-  };
-}
-
-const inputStyle: CSSProperties = {
-  width: "100%",
-  padding: 12,
-  marginTop: 8,
-  marginBottom: 16,
-  border: "1px solid #D8C6A0",
-  borderRadius: 8,
-  boxSizing: "border-box",
-  fontSize: 15,
+    admission_date: TODAY,
+  },
+  attendance: {
+    student_id: "",
+    attendance_date: TODAY,
+    status: "present",
+    remarks: "",
+  },
+  fees: {
+    student_id: "",
+    title: "Monthly tuition",
+    amount: "",
+    amount_paid: "0",
+    due_date: TODAY,
+  },
+  exams: {
+    title: "",
+    class_name: "",
+    subject: "",
+    exam_date: TODAY,
+    total_marks: "100",
+  },
+  results: {
+    exam_id: "",
+    student_id: "",
+    marks_obtained: "",
+    remarks: "",
+  },
+  guardians: {
+    guardian_id: "",
+    student_id: "",
+    relationship: "Parent",
+  },
 };
-const buttonStyle: CSSProperties = {
-  padding: "12px 18px",
-  border: "none",
+
+const card: CSSProperties = {
+  background: "#fff",
+  border: "1px solid #dfccaa",
+  borderRadius: 15,
+  padding: 20,
+  marginBottom: 16,
+};
+
+const input: CSSProperties = {
+  display: "block",
+  width: "100%",
+  boxSizing: "border-box",
+  padding: 11,
   borderRadius: 8,
+  border: "1px solid #cbb88d",
+  marginTop: 6,
+  marginBottom: 14,
+  fontSize: 16,
+};
+
+const button: CSSProperties = {
   background: "#064535",
   color: "white",
+  border: 0,
+  borderRadius: 8,
+  padding: "11px 15px",
   cursor: "pointer",
+  marginRight: 8,
+  marginBottom: 8,
 };
-const cardStyle: CSSProperties = {
-  background: "#FFFFFF",
-  padding: 20,
-  border: "1px solid #D8C6A0",
-  borderRadius: 14,
-  marginBottom: 20,
-};
+
+function labelFor(k: string) {
+  return k
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function str(v: unknown): string {
+  return v == null ? "" : String(v);
+}
 
 export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
-  const [students, setStudents] = useState<Student[]>([]);
+  const [tab, setTab] = useState<Tab>("students");
+  const [rows, setRows] = useState<
+    Record<Tab, RecordRow[]>
+  >({
+    students: [],
+    attendance: [],
+    fees: [],
+    exams: [],
+    results: [],
+    guardians: [],
+  });
+
+  const [draft, setDraft] = useState<Fields>({
+    ...initial.students,
+  });
+  const [editingId, setEditingId] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [form, setForm] = useState<StudentForm>(blankForm);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
 
-  function headers(accessToken: string): Record<string, string> {
-    if (!key) throw new Error("Supabase key missing.");
+  function authHeaders(jwt: string): Record<string, string> {
+    if (!API_KEY) {
+      throw new Error("Supabase anon key missing.");
+    }
     return {
-      apikey: key,
-      Authorization: `Bearer ${accessToken}`,
+      apikey: API_KEY,
+      Authorization: `Bearer ${jwt}`,
       "Content-Type": "application/json",
     };
   }
 
-  async function errorText(response: Response, fallback: string) {
-    const body = await response.json().catch(() => null);
-    return body?.message || body?.error_description || fallback;
-  }
-
-  async function loadStudents(accessToken: string, pageNumber: number, query: string) {
-    if (!url) throw new Error("Supabase URL missing.");
-    const params = new URLSearchParams({
-      select: "id,student_id,full_name,class_name,section,roll_number,admission_date,created_at",
-      order: "created_at.desc",
-      limit: String(PAGE_SIZE),
-      offset: String((pageNumber - 1) * PAGE_SIZE),
-    });
-    // Escape PostgREST filter operators from user input.
-    const clean = query.trim().replace(/[(),.%*\\]/g, "");
-    if (clean) {
-      params.set(
-        "or",
-        `(student_id.ilike.*${clean}*,full_name.ilike.*${clean}*,class_name.ilike.*${clean}*,section.ilike.*${clean}*,roll_number.ilike.*${clean}*)`
-      );
+  async function request(
+    path: string,
+    jwt: string,
+    options: RequestInit = {}
+  ) {
+    if (!BASE) {
+      throw new Error("Supabase URL missing.");
     }
-    const response = await fetch(`${url}/rest/v1/students?${params.toString()}`, {
-      headers: { ...headers(accessToken), Prefer: "count=exact" },
+
+    const response = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: {
+        ...authHeaders(jwt),
+        ...(options.headers || {}),
+      },
       cache: "no-store",
     });
+
     if (!response.ok) {
-      if (response.status === 401) throw new Error("Session expired. Please log out and log in again.");
-      throw new Error(await errorText(response, "Student loading failed."));
-    }
-    const rows = (await response.json()) as Student[];
-    const contentRange = response.headers.get("content-range");
-    const count = contentRange?.split("/")[1];
-    setStudents(rows);
-    setTotal(count && count !== "*" ? Number(count) : rows.length);
-  }
-
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-      try {
-        // loadStudents updates state only for current mounted view.
-        if (!cancelled) await loadStudents(token, page, search);
-      } catch (error) {
-        if (!cancelled) setMessage(error instanceof Error ? error.message : "Loading failed.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }, 250);
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, page, search]);
-
-  async function handleLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-    setMessage("");
-    try {
-      if (!url || !key) throw new Error("Supabase configuration missing.");
-      const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-        method: "POST",
-        headers: { apikey: key, "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const session = await response.json();
-      if (!response.ok || !session.access_token) throw new Error("Invalid email or password.");
-      const accessToken: string = session.access_token;
-      const adminResponse = await fetch(`${url}/rest/v1/rpc/is_admin`, {
-        method: "POST",
-        headers: headers(accessToken),
-        body: "{}",
-      });
-      if (!adminResponse.ok) throw new Error("Administrator verification failed.");
-      if ((await adminResponse.json()) !== true) throw new Error("Administrator access required.");
-      setPage(1);
-      setSearch("");
-      setToken(accessToken);
-      setPassword("");
-      setMessage("Administrator login successful.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Login failed.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function updateField(field: keyof StudentForm, value: string) {
-    setForm((previous) => ({ ...previous, [field]: value }));
-  }
-
-  function startAdd() {
-    setEditId(null);
-    setForm(blankForm());
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function startEdit(student: Student) {
-    setEditId(student.id);
-    setForm({
-      student_id: student.student_id,
-      full_name: student.full_name,
-      class_name: student.class_name ?? "",
-      section: student.section ?? "",
-      roll_number: student.roll_number ?? "",
-      admission_date: student.admission_date ?? localDate(),
-    });
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditId(null);
-    setForm(blankForm());
-  }
-
-  async function saveStudent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!token || !url || saving) return;
-    setSaving(true);
-    setMessage("");
-    try {
-      const payload = {
-        student_id: form.student_id.trim(),
-        full_name: form.full_name.trim(),
-        class_name: form.class_name.trim() || null,
-        section: form.section.trim() || null,
-        roll_number: form.roll_number.trim() || null,
-        admission_date: form.admission_date || null,
-      };
-      if (!payload.student_id || !payload.full_name) throw new Error("Student ID and Name are required.");
-      const editing = Boolean(editId);
-      const endpoint = editing
-        ? `${url}/rest/v1/students?id=eq.${encodeURIComponent(editId!)}`
-        : `${url}/rest/v1/students`;
-      const response = await fetch(endpoint, {
-        method: editing ? "PATCH" : "POST",
-        headers: { ...headers(token), Prefer: "return=representation" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error(await errorText(response, "Could not save student."));
-      const result = (await response.json()) as Student[];
-      if (result.length !== 1) throw new Error("No record was changed. Check database permissions.");
-      closeForm();
-      setPage(1);
-      setSearch("");
-      await loadStudents(token, 1, "");
-      setMessage(editing ? "Student updated successfully." : "Student added successfully.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Save failed.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function deleteStudent(student: Student) {
-    if (!token || !url || saving) return;
-    const agreed = window.confirm(`Delete ${student.full_name} (${student.student_id})? This cannot be undone.`);
-    if (!agreed) return;
-    setSaving(true);
-    setMessage("");
-    try {
-      const response = await fetch(
-        `${url}/rest/v1/students?id=eq.${encodeURIComponent(student.id)}`,
-        { method: "DELETE", headers: { ...headers(token), Prefer: "return=representation" } }
+      const detail: { message?: string } =
+        await response.json().catch(() => ({}));
+      throw new Error(
+        detail.message || `Request failed (${response.status})`
       );
-      if (!response.ok) throw new Error(await errorText(response, "Delete failed."));
-      const result = (await response.json()) as Student[];
-      if (result.length !== 1) throw new Error("No record was deleted. Check database permissions.");
-      const newPage = students.length === 1 && page > 1 ? page - 1 : page;
-      setPage(newPage);
-      await loadStudents(token, newPage, search);
-      setMessage("Student deleted successfully.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Delete failed.");
-    } finally {
-      setSaving(false);
+    }
+
+    if (response.status === 204) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  function tableName(which: Tab) {
+    if (which === "results") return "exam_results";
+    if (which === "guardians") return "guardian_students";
+    return which;
+  }
+
+  async function readTab(which: Tab, jwt: string) {
+    const data = await request(
+      `/rest/v1/${tableName(which)}?select=*&order=created_at.desc&limit=500`,
+      jwt
+    );
+
+    setRows((old) => ({
+      ...old,
+      [which]: Array.isArray(data) ? data : [],
+    }));
+  }
+
+  async function readAll(jwt: string) {
+    const fetched = await Promise.allSettled(
+      TABS.map(({ id }) => readTab(id, jwt))
+    );
+
+    const issues = fetched.flatMap((r, i) =>
+      r.status === "rejected"
+        ? [
+            `${TABS[i].title}: ${
+              r.reason instanceof Error
+                ? r.reason.message
+                : "Load failed"
+            }`,
+          ]
+        : []
+    );
+
+    if (issues.length) {
+      setMessage(`Some modules could not load. ${issues.join(" | ")}`);
     }
   }
 
-  async function refreshStudents() {
-    if (!token) return;
-    setLoading(true);
+  async function login(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setMessage("");
+
     try {
-      await loadStudents(token, page, search);
-      setMessage("Student list refreshed.");
+      const session = await request(
+        "/auth/v1/token?grant_type=password",
+        API_KEY || "",
+        {
+          method: "POST",
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      if (!session?.access_token) {
+        throw new Error("Login failed.");
+      }
+
+      const jwt: string = session.access_token;
+
+      const admin = await request(
+        "/rest/v1/rpc/is_admin",
+        jwt,
+        { method: "POST", body: "{}" }
+      );
+
+      if (admin !== true) {
+        throw new Error("Administrator access required.");
+      }
+
+      setToken(jwt);
+      setPassword("");
+      setMessage("Admin login successful.");
+
+      await readAll(jwt);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Refresh failed.");
+      setMessage(
+        error instanceof Error ? error.message : "Login failed."
+      );
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
-  function logout() {
-    setToken("");
-    setStudents([]);
-    setTotal(0);
-    setPassword("");
+  function chooseTab(next: Tab) {
+    setTab(next);
+    setShowForm(false);
+    setEditingId("");
+    setDraft({ ...initial[next] });
     setSearch("");
     setPage(1);
-    closeForm();
     setMessage("");
   }
 
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  function editRow(row: RecordRow) {
+    setEditingId(str(row.id));
+    setDraft(
+      Object.fromEntries(
+        Object.keys(initial[tab]).map((key) => [
+          key,
+          str(row[key]),
+        ])
+      )
+    );
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function payload(): Record<string, string | number | null> {
+    const data: Record<string, string | number | null> = {};
+
+    for (const [k, v] of Object.entries(draft)) {
+      if (
+        [
+          "amount",
+          "amount_paid",
+          "total_marks",
+          "marks_obtained",
+        ].includes(k)
+      ) {
+        data[k] = Number(v);
+      } else if (
+        [
+          "due_date",
+          "exam_date",
+          "remarks",
+          "section",
+          "roll_number",
+          "class_name",
+        ].includes(k) &&
+        !v.trim()
+      ) {
+        data[k] = null;
+      } else {
+        data[k] = v.trim();
+      }
+    }
+
+    return data;
+  }
+
+  async function save(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!token) return;
+
+    setBusy(true);
+    setMessage("");
+
+    try {
+      if (tab === "results") {
+        const exam = rows.exams.find(
+          (x) => str(x.id) === draft.exam_id
+        );
+
+        if (
+          exam &&
+          Number(draft.marks_obtained) >
+            Number(exam.total_marks)
+        ) {
+          throw new Error(
+            "Marks cannot exceed exam total marks."
+          );
+        }
+      }
+
+      const suffix = editingId
+        ? `?id=eq.${encodeURIComponent(editingId)}`
+        : "";
+
+      await request(
+        `/rest/v1/${tableName(tab)}${suffix}`,
+        token,
+        {
+          method: editingId ? "PATCH" : "POST",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify(payload()),
+        }
+      );
+
+      setMessage(
+        editingId
+          ? "Record updated successfully."
+          : "Record added successfully."
+      );
+
+      setEditingId("");
+      setDraft({ ...initial[tab] });
+      setShowForm(false);
+
+      await readTab(tab, token);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Save failed."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(row: RecordRow) {
+    if (!token) return;
+
+    const name = str(
+      row.full_name || row.title || row.student_id || row.id
+    );
+
+    if (
+      !window.confirm(
+        `Delete ${name}? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setMessage("");
+
+    try {
+      await request(
+        `/rest/v1/${tableName(tab)}?id=eq.${encodeURIComponent(
+          str(row.id)
+        )}`,
+        token,
+        {
+          method: "DELETE",
+          headers: { Prefer: "return=minimal" },
+        }
+      );
+
+      setMessage("Record deleted.");
+      await readTab(tab, token);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Delete failed."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function optionText(row: RecordRow, field: string) {
+    if (field === "exam_id") {
+      return `${str(row.title)} — ${str(row.subject)} (${str(
+        row.class_name
+      )})`;
+    }
+
+    return `${str(row.full_name)} — ${str(
+      row.student_id
+    )} (${str(row.class_name)})`;
+  }
+
+  const filtered = rows[tab].filter((row) =>
+    Object.values(row).some((v) =>
+      str(v).toLowerCase().includes(search.toLowerCase())
+    )
+  );
+
+  const pages = Math.max(
+    1,
+    Math.ceil(filtered.length / 10)
+  );
+
+  const current = Math.min(page, pages);
+  const visible = filtered.slice(
+    (current - 1) * 10,
+    current * 10
+  );
 
   return (
-    <main style={{ minHeight: "100vh", background: "#FAF8F2", color: "#063D32", padding: "32px 16px", fontFamily: "Arial, sans-serif" }}>
-      <div style={{ maxWidth: 950, margin: "auto" }}>
-        <h1>ELVARIN ACADEMY</h1>
-        <p style={{ color: "#B58A40" }}>Administration Portal</p>
+    <main
+      style={{
+        background: "#faf8f2",
+        color: "#123f35",
+        minHeight: "100vh",
+        padding: "30px 14px",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <div style={{ maxWidth: 1050, margin: "auto" }}>
+        <h1 style={{ marginBottom: 4, letterSpacing: 1 }}>
+          ELVARIN ACADEMY
+        </h1>
+
+        <p style={{ color: "#a98036", marginTop: 5 }}>
+          Administration Portal
+        </p>
+
         {!token ? (
-          <form onSubmit={handleLogin} style={cardStyle}>
+          <form onSubmit={login} style={card}>
             <h2>Administrator Login</h2>
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-            <label htmlFor="password">Password</label>
-            <input id="password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
-            <button type="submit" disabled={loading} style={buttonStyle}>{loading ? "Checking..." : "Login"}</button>
+
+            <label>
+              Email
+              <input
+                style={input}
+                required
+                type="email"
+                value={email}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
+              />
+            </label>
+
+            <label>
+              Password
+              <input
+                style={input}
+                required
+                type="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
+              />
+            </label>
+
+            <button style={button} disabled={busy}>
+              {busy ? "Checking..." : "Login"}
+            </button>
           </form>
         ) : (
           <>
-            <section style={cardStyle}>
-              <h2>Student Management</h2>
-              <p>Welcome, Administrator</p>
-              <p>Matching students: <strong>{total}</strong></p>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button onClick={showForm ? closeForm : startAdd} style={buttonStyle}>{showForm ? "Close Form" : "+ Add Student"}</button>
-                <button onClick={refreshStudents} disabled={loading} style={buttonStyle}>Refresh</button>
-                <button onClick={logout} style={{ ...buttonStyle, background: "#795548" }}>Logout</button>
+            <section style={card}>
+              <h2 style={{ marginTop: 0 }}>
+                Management Dashboard
+              </h2>
+
+              <p>
+                Students: <strong>{rows.students.length}</strong>
+                {" · "}
+                Attendance records:{" "}
+                <strong>{rows.attendance.length}</strong>
+                {" · "}
+                Fees: <strong>{rows.fees.length}</strong>
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 6,
+                }}
+              >
+                {TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => chooseTab(t.id)}
+                    style={{
+                      ...button,
+                      background:
+                        tab === t.id
+                          ? "#064535"
+                          : "#63796e",
+                    }}
+                  >
+                    {t.title}
+                  </button>
+                ))}
               </div>
+
+              <button
+                style={{
+                  ...button,
+                  background: "#775848",
+                }}
+                onClick={() => {
+                  setToken("");
+                  setRows({
+                    students: [],
+                    attendance: [],
+                    fees: [],
+                    exams: [],
+                    results: [],
+                    guardians: [],
+                  });
+                  setMessage("");
+                }}
+              >
+                Logout
+              </button>
+
+              <button
+                style={button}
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await readAll(token);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Refresh All
+              </button>
             </section>
-            {showForm && (
-              <section style={cardStyle}>
-                <h2>{editId ? "Edit Student" : "Add New Student"}</h2>
-                <form onSubmit={saveStudent}>
-                  <label htmlFor="student_id">Student ID</label>
-                  <input id="student_id" required maxLength={60} value={form.student_id} onChange={(e) => updateField("student_id", e.target.value)} style={inputStyle} placeholder="ELV-2026-002" />
-                  <label htmlFor="full_name">Full Name</label>
-                  <input id="full_name" required value={form.full_name} onChange={(e) => updateField("full_name", e.target.value)} style={inputStyle} />
-                  <label htmlFor="class_name">Class</label>
-                  <input id="class_name" value={form.class_name} onChange={(e) => updateField("class_name", e.target.value)} style={inputStyle} placeholder="Class 5" />
-                  <label htmlFor="section">Section</label>
-                  <input id="section" value={form.section} onChange={(e) => updateField("section", e.target.value)} style={inputStyle} placeholder="A" />
-                  <label htmlFor="roll_number">Roll Number</label>
-                  <input id="roll_number" value={form.roll_number} onChange={(e) => updateField("roll_number", e.target.value)} style={inputStyle} placeholder="02" />
-                  <label htmlFor="admission_date">Admission Date</label>
-                  <input id="admission_date" type="date" value={form.admission_date} onChange={(e) => updateField("admission_date", e.target.value)} style={inputStyle} />
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button type="submit" disabled={saving} style={buttonStyle}>{saving ? "Saving..." : editId ? "Save Changes" : "Save Student"}</button>
-                    <button type="button" onClick={closeForm} style={{ ...buttonStyle, background: "#795548" }}>Cancel</button>
-                  </div>
+
+            <section style={card}>
+              <h2>
+                {TABS.find((x) => x.id === tab)?.title} Management
+              </h2>
+
+              {tab === "guardians" && (
+                <p style={{ color: "#825519" }}>
+                  Guardian accounts must exist in Supabase Auth.
+                  Enter their Auth User UUID. Linking
+                  permissions depend on guardian_students
+                  RLS policies.
+                </p>
+              )}
+
+              <button
+                style={button}
+                onClick={() => {
+                  setEditingId("");
+                  setDraft({ ...initial[tab] });
+                  setShowForm(!showForm);
+                }}
+              >
+                {showForm
+                  ? "Close Form"
+                  : `+ Add ${
+                      tab === "results"
+                        ? "Result"
+                        : tab === "guardians"
+                          ? "Guardian Link"
+                          : tab === "attendance"
+                            ? "Attendance"
+                            : tab === "fees"
+                              ? "Fee"
+                              : tab === "exams"
+                                ? "Exam"
+                                : "Student"
+                    }`}
+              </button>
+
+              {showForm && (
+                <form
+                  onSubmit={save}
+                  style={{
+                    marginTop: 12,
+                    borderTop: "1px solid #ddd",
+                    paddingTop: 14,
+                  }}
+                >
+                  <h3>
+                    {editingId ? "Edit" : "Add"} Record
+                  </h3>
+
+                  {Object.entries(draft).map(
+                    ([field, value]) => (
+                      <label
+                        key={field}
+                        style={{ display: "block" }}
+                      >
+                        {labelFor(field)}
+
+                        {field === "student_id" &&
+                        tab !== "students" ? (
+                          <select
+                            style={input}
+                            required
+                            value={value}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [field]: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">
+                              Select student
+                            </option>
+                            {rows.students.map((s) => (
+                              <option
+                                key={str(s.id)}
+                                value={str(s.id)}
+                              >
+                                {optionText(s, field)}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field === "exam_id" ? (
+                          <select
+                            style={input}
+                            required
+                            value={value}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [field]: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">
+                              Select exam
+                            </option>
+                            {rows.exams.map((x) => (
+                              <option
+                                key={str(x.id)}
+                                value={str(x.id)}
+                              >
+                                {optionText(x, field)}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field === "status" ? (
+                          <select
+                            style={input}
+                            value={value}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [field]: e.target.value,
+                              })
+                            }
+                          >
+                            {[
+                              "present",
+                              "absent",
+                              "late",
+                              "excused",
+                            ].map((v) => (
+                              <option key={v}>{v}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            style={input}
+                            type={
+                              field.includes("date")
+                                ? "date"
+                                : [
+                                      "amount",
+                                      "amount_paid",
+                                      "total_marks",
+                                      "marks_obtained",
+                                    ].includes(field)
+                                  ? "number"
+                                  : "text"
+                            }
+                            step={
+                              [
+                                "amount",
+                                "amount_paid",
+                                "total_marks",
+                                "marks_obtained",
+                              ].includes(field)
+                                ? "0.01"
+                                : undefined
+                            }
+                            min={
+                              [
+                                "amount",
+                                "amount_paid",
+                                "total_marks",
+                                "marks_obtained",
+                              ].includes(field)
+                                ? "0"
+                                : undefined
+                            }
+                            required={
+                              ![
+                                "remarks",
+                                "section",
+                                "roll_number",
+                                "class_name",
+                                "due_date",
+                                "exam_date",
+                              ].includes(field)
+                            }
+                            value={value}
+                            onChange={(e) =>
+                              setDraft({
+                                ...draft,
+                                [field]: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+                      </label>
+                    )
+                  )}
+
+                  <button
+                    style={button}
+                    disabled={busy}
+                  >
+                    {busy
+                      ? "Saving..."
+                      : editingId
+                        ? "Save Changes"
+                        : "Save Record"}
+                  </button>
                 </form>
-              </section>
-            )}
-            <section style={cardStyle}>
-              <h2>Student Directory</h2>
-              <label htmlFor="student-search">Search by ID, name, class, section or roll</label>
-              <input id="student-search" placeholder="Search students..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} style={inputStyle} />
-              {loading ? <p>Loading students...</p> : students.length === 0 ? <p>No matching student records.</p> : students.map((student) => (
-                <div key={student.id} style={{ padding: 16, marginBottom: 12, border: "1px solid #E4D9C2", borderRadius: 8 }}>
-                  <h3>{student.full_name}</h3>
-                  <p><strong>Student ID:</strong> {student.student_id}</p>
-                  <p><strong>Class:</strong> {student.class_name || "—"} | <strong>Section:</strong> {student.section || "—"}</p>
-                  <p><strong>Roll:</strong> {student.roll_number || "—"}</p>
-                  <p><strong>Admission:</strong> {student.admission_date || "—"}</p>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <button type="button" onClick={() => startEdit(student)} disabled={saving} style={buttonStyle}>Edit</button>
-                    <button type="button" onClick={() => deleteStudent(student)} disabled={saving} style={{ ...buttonStyle, background: "#9C2F2F" }}>Delete</button>
+              )}
+            </section>
+
+            <section style={card}>
+              <h2>Directory</h2>
+
+              <input
+                style={input}
+                placeholder={`Search ${tab}...`}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
+
+              <p style={{ fontSize: 13 }}>
+                Showing {visible.length} of{" "}
+                {filtered.length} matching records
+                (up to 500 loaded per module).
+              </p>
+
+              {visible.length === 0 ? (
+                <p>No records found.</p>
+              ) : (
+                visible.map((row, i) => (
+                  <div
+                    key={str(row.id || i)}
+                    style={{
+                      border: "1px solid #e1d3b8",
+                      padding: 16,
+                      borderRadius: 10,
+                      marginBottom: 12,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    <h3>
+                      {str(
+                        row.full_name ||
+                          row.title ||
+                          row.student_id ||
+                          `${tab} record`
+                      )}
+                    </h3>
+
+                    {Object.entries(row)
+                      .filter(
+                        ([k]) =>
+                          !["id", "created_at"].includes(k)
+                      )
+                      .map(([k, v]) => (
+                        <p
+                          key={k}
+                          style={{
+                            fontSize: 14,
+                            margin: "8px 0",
+                          }}
+                        >
+                          <strong>
+                            {labelFor(k)}:
+                          </strong>{" "}
+                          {str(v) || "—"}
+                        </p>
+                      ))}
+
+                    <button
+                      style={button}
+                      disabled={busy}
+                      onClick={() => editRow(row)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      style={{
+                        ...button,
+                        background: "#982f31",
+                      }}
+                      disabled={busy}
+                      onClick={() => remove(row)}
+                    >
+                      Delete
+                    </button>
                   </div>
-                </div>
-              ))}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <button type="button" style={buttonStyle} disabled={page === 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</button>
-                <span>Page {page} of {pages}</span>
-                <button type="button" style={buttonStyle} disabled={page >= pages || loading} onClick={() => setPage((current) => current + 1)}>Next</button>
+                ))
+              )}
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  style={button}
+                  disabled={current <= 1}
+                  onClick={() =>
+                    setPage(current - 1)
+                  }
+                >
+                  Previous
+                </button>
+
+                <span>
+                  Page {current} of {pages}
+                </span>
+
+                <button
+                  style={button}
+                  disabled={current >= pages}
+                  onClick={() =>
+                    setPage(current + 1)
+                  }
+                >
+                  Next
+                </button>
               </div>
             </section>
           </>
         )}
-        {message && <p role="status" style={{ marginTop: 16 }}>{message}</p>}
-        <a href="/" style={{ display: "inline-block", marginTop: 20, color: "#064535" }}>Back to Home</a>
+
+        {message && (
+          <p
+            role="status"
+            style={{
+              ...card,
+              borderColor: "#c4a45a",
+            }}
+          >
+            {message}
+          </p>
+        )}
+
+        <a
+          href="/"
+          style={{ color: "#064535" }}
+        >
+          Back to Home
+        </a>
       </div>
     </main>
   );
