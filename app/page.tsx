@@ -1,37 +1,40 @@
-
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { createClient } from "@supabase/supabase-js";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+  type CSSProperties,
+} from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box" as const,
-  padding: 12,
-  marginTop: 8,
-  marginBottom: 20,
-  border: "1px solid #D8C6A0",
-  borderRadius: 7,
-};
+const features = [
+  "Student Management",
+  "Teacher Management",
+  "Student Attendance",
+  "Homework & Learning",
+  "Examinations & Results",
+  "Academic Progress",
+  "Guardian Communication",
+  "Character Development",
+];
 
-const buttonStyle = {
-  width: "100%",
-  padding: 14,
-  background: "#064535",
-  color: "#FFFFFF",
-  border: 0,
-  borderRadius: 7,
-  cursor: "pointer",
-};
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+let supabase: SupabaseClient | null = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+}
 
 export default function AdminLogin() {
-  const supabase = useMemo(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return null;
-    return createClient(url, key);
-  }, []);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -44,40 +47,37 @@ export default function AdminLogin() {
     async function restoreSession() {
       if (!supabase) {
         if (active) {
-          setMessage("Supabase configuration is missing.");
+          setMessage("Supabase configuration is incomplete.");
           setLoading(false);
         }
         return;
       }
 
       try {
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
+        const { data, error } = await supabase.auth.getUser();
 
-        if (userError || !userData.user) {
+        if (error || !data.user) {
           if (active) setAuthorized(false);
           return;
         }
 
-        const { data: isAdmin, error: roleError } =
+        const { data: isAdmin, error: adminError } =
           await supabase.rpc("is_admin");
 
-        if (roleError || isAdmin !== true) {
-          if (active) {
-            setAuthorized(false);
-            setMessage("Administrator access denied.");
-          }
+        if (!active) return;
+
+        if (adminError || isAdmin !== true) {
+          setAuthorized(false);
+          setMessage("Administrator access denied.");
           return;
         }
 
-        if (active) {
-          setAuthorized(true);
-          setMessage("Administrator identity verified.");
-        }
+        setAuthorized(true);
+        setMessage("Administrator identity verified.");
       } catch {
         if (active) {
           setAuthorized(false);
-          setMessage("Could not restore admin session.");
+          setMessage("Could not restore administrator session.");
         }
       } finally {
         if (active) setLoading(false);
@@ -89,25 +89,21 @@ export default function AdminLogin() {
     return () => {
       active = false;
     };
-  }, [supabase]);
+  }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabase) {
-      setMessage("Supabase configuration is missing.");
-      return;
-    }
-
     setLoading(true);
     setMessage("");
     setAuthorized(false);
 
     try {
+      if (!supabase) {
+        throw new Error("Supabase configuration is incomplete.");
+      }
+
       const { error: loginError } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        await supabase.auth.signInWithPassword({ email, password });
 
       if (loginError) {
         throw new Error("Email or password is incorrect.");
@@ -116,9 +112,14 @@ export default function AdminLogin() {
       const { data: isAdmin, error: adminError } =
         await supabase.rpc("is_admin");
 
-      if (adminError || isAdmin !== true) {
+      if (adminError) {
         await supabase.auth.signOut();
-        throw new Error("Administrator access denied.");
+        throw new Error("Could not verify administrator access.");
+      }
+
+      if (isAdmin !== true) {
+        await supabase.auth.signOut();
+        throw new Error("This account is not an administrator.");
       }
 
       setAuthorized(true);
@@ -138,18 +139,20 @@ export default function AdminLogin() {
     if (!supabase) return;
 
     setLoading(true);
-    const { error } = await supabase.auth.signOut();
 
-    if (error) {
-      setMessage("Logout failed. Please try again.");
-    } else {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
       setAuthorized(false);
       setEmail("");
       setPassword("");
-      setMessage("You have successfully logged out.");
+      setMessage("Successfully logged out.");
+    } catch {
+      setMessage("Logout failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -164,7 +167,7 @@ export default function AdminLogin() {
     >
       <div
         style={{
-          maxWidth: 430,
+          maxWidth: authorized ? 850 : 430,
           margin: "auto",
           padding: 32,
           background: "#FFFFFF",
@@ -172,16 +175,12 @@ export default function AdminLogin() {
           borderRadius: 14,
         }}
       >
-        <h1 style={{ color: "#064535" }}>
-          ELVARIN ACADEMY
-        </h1>
+        <h1 style={{ color: "#064535" }}>ELVARIN ACADEMY</h1>
 
-        <p style={{ color: "#B58A40" }}>
-          Administrator Login
-        </p>
+        <p style={{ color: "#B58A40" }}>Administrator Login</p>
 
         {loading ? (
-          <p role="status">Please wait...</p>
+          <p role="status">Checking...</p>
         ) : !authorized ? (
           <form onSubmit={handleLogin}>
             <label htmlFor="email">Email</label>
@@ -191,7 +190,7 @@ export default function AdminLogin() {
               required
               autoComplete="username"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               style={inputStyle}
             />
 
@@ -202,43 +201,61 @@ export default function AdminLogin() {
               required
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               style={inputStyle}
             />
 
-            <button type="submit" style={buttonStyle}>
-              Login
+            <button type="submit" disabled={loading} style={buttonStyle}>
+              {loading ? "Checking..." : "Login"}
             </button>
           </form>
         ) : (
           <section>
-            <h2>Admin Dashboard</h2>
+            <h2 style={{ color: "#064535" }}>Admin Dashboard</h2>
             <p>Welcome to ELVARIN Academy.</p>
             <p>Administrator identity verified.</p>
 
+            <h3 style={{ marginTop: 30, color: "#B58A40" }}>
+              Academy Management
+            </h3>
+
             <div
               style={{
-                background: "#FAF8F2",
-                padding: 20,
-                border: "1px solid #D8C6A0",
-                borderRadius: 8,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                gap: 16,
                 marginTop: 20,
-                marginBottom: 20,
               }}
             >
-              <strong>Management Modules</strong>
-              <p>Student Management — Coming Soon</p>
-              <p>Teacher Management — Coming Soon</p>
-              <p>Attendance — Coming Soon</p>
-              <p>Examinations — Coming Soon</p>
-              <p>Guardian Management — Coming Soon</p>
+              {features.map((feature, index) => (
+                <article
+                  key={feature}
+                  style={{
+                    background: "#FAF8F2",
+                    padding: 20,
+                    border: "1px solid #D8C6A0",
+                    borderTop: "3px solid #D4AF62",
+                    borderRadius: 10,
+                  }}
+                >
+                  <div style={{ color: "#B58A40", fontSize: 23 }}>
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+                  <h3 style={{ fontSize: 16, color: "#064535" }}>
+                    {feature}
+                  </h3>
+                  <p style={{ fontSize: 13, color: "#52675D" }}>
+                    Coming Soon
+                  </p>
+                </article>
+              ))}
             </div>
 
             <button
               type="button"
               onClick={handleLogout}
               disabled={loading}
-              style={buttonStyle}
+              style={{ ...buttonStyle, marginTop: 30 }}
             >
               Logout
             </button>
@@ -246,18 +263,14 @@ export default function AdminLogin() {
         )}
 
         {message && (
-          <p role="status" style={{ marginTop: 20 }}>
+          <p role="status" style={{ marginTop: 20, lineHeight: 1.6 }}>
             {message}
           </p>
         )}
 
         <a
           href="/"
-          style={{
-            display: "block",
-            marginTop: 25,
-            color: "#064535",
-          }}
+          style={{ display: "block", marginTop: 25, color: "#064535" }}
         >
           Back to Home
         </a>
@@ -265,3 +278,25 @@ export default function AdminLogin() {
     </main>
   );
 }
+
+const inputStyle: CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: 12,
+  marginTop: 8,
+  marginBottom: 20,
+  border: "1px solid #D8C6A0",
+  borderRadius: 7,
+  fontSize: 16,
+};
+
+const buttonStyle: CSSProperties = {
+  width: "100%",
+  padding: 14,
+  background: "#064535",
+  color: "#FFFFFF",
+  border: 0,
+  borderRadius: 7,
+  cursor: "pointer",
+  fontSize: 16,
+};
