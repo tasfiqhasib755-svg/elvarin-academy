@@ -430,7 +430,9 @@ export default function MonthlyAttendanceReport() {
     a.remove();
 
     window.setTimeout(
-      () => URL.revokeObjectURL(downloadUrl),
+      
+() => window.URL.revokeObjectURL(downloadUrl),
+  
       1000
     );
   }
