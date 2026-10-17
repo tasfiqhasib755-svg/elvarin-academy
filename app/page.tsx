@@ -1,451 +1,343 @@
-
 "use client";
 
-import Link from "next/link";
+import { useEffect } from "react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const pillars = [
   {
-    icon: "✦",
     title: "Education",
     subtitle: "Knowledge",
     description:
-      "Inspiring curiosity, understanding and the pursuit of meaningful knowledge.",
+      "Building strong understanding through meaningful learning, curiosity and academic excellence."
   },
   {
-    icon: "❀",
     title: "Life & Learning",
     subtitle: "Growth",
     description:
-      "Encouraging personal development, reflection and a lifelong love of learning.",
+      "Encouraging learners to grow continuously through reflection, discipline and lifelong learning."
   },
   {
-    icon: "◇",
     title: "Values",
     subtitle: "Character",
     description:
-      "Placing respect, kindness and strong character at the heart of education.",
+      "Nurturing character through respect, kindness, responsibility and moral grounding."
   },
   {
-    icon: "◎",
     title: "Awareness",
     subtitle: "Responsibility",
     description:
-      "Developing thoughtful individuals who understand their responsibilities.",
+      "Developing thoughtful minds that understand self, society and responsibility."
   },
   {
-    icon: "✧",
     title: "Righteousness",
     subtitle: "Good Deeds",
     description:
-      "Encouraging sincerity, positive action and the courage to do what is right.",
+      "Inspiring right action, ethical conduct and a sincere commitment to goodness."
   },
   {
-    icon: "❖",
     title: "Integrity",
     subtitle: "Trust",
     description:
-      "Building honesty, accountability and trust through everyday choices.",
+      "Strengthening honesty, transparency and trust in every part of the learning journey."
   },
   {
-    icon: "✳",
     title: "Najah",
     subtitle: "Meaningful Success",
     description:
-      "Striving for purposeful achievement through knowledge and good character.",
-  },
+      "Guiding students toward purposeful success rooted in knowledge, values and character."
+  }
 ];
 
-const learning = [
-  {
-    number: "01",
-    title: "Purposeful Education",
-    description:
-      "An approach to learning that values understanding, curiosity and consistent intellectual development.",
-  },
-  {
-    number: "02",
-    title: "Character & Values",
-    description:
-      "A philosophy that places respect, integrity, responsibility and positive conduct alongside knowledge.",
-  },
-  {
-    number: "03",
-    title: "Growth Beyond the Classroom",
-    description:
-      "Encouraging confidence, independent thinking, good habits and lifelong personal growth.",
-  },
+const activities = [
+  "Student Progress Monitoring",
+  "Monthly Academic Reports",
+  "Result & Assessment Updates",
+  "Attendance Tracking",
+  "Class Performance Review",
+  "Guardian Communication",
+  "Previous Progress History",
+  "Academic Announcements",
+  "Student Records Management",
+  "Learning Development Insights",
+  "Examination & Evaluation",
+  "Administrative Support"
 ];
 
-const gallery = [
+const highlights = [
   {
-    src: "/elvarin/classroom.jpg",
-    title: "Learning Environment",
-    caption: "Classroom design concept",
-    label: "01",
+    title: "Brand & Institutional Presence",
+    text:
+      "A refined academy identity expressed through signboard, official environment and premium brand applications.",
+    image: "/elvarin/brand-applications.jpg",
+    fit: "cover"
   },
   {
-    src: "/elvarin/classroom-2.jpg",
-    title: "Academic Atmosphere",
-    caption: "Classroom inspiration",
-    label: "02",
+    title: "Academic Environment",
+    text:
+      "Clean, premium and value-driven classroom and office concepts that reflect a serious educational atmosphere.",
+    image: "/elvarin/campus-environment.jpg",
+    fit: "contain"
   },
   {
-    src: "/elvarin/office.jpg",
-    title: "Institutional Environment",
-    caption: "Office design concept",
-    label: "03",
-  },
+    title: "Learning & Presentation Assets",
+    text:
+      "Classroom visuals, stationery, academic seal and presentation materials designed to communicate trust and quality.",
+    image: "/elvarin/campus-branding.jpg",
+    fit: "contain"
+  }
+];
+
+const essentials = [
   {
-    src: "/elvarin/uniform.jpg",
     title: "Student Identity",
-    caption: "Uniform design concept",
-    label: "04",
+    text:
+      "Professional student presentation with elegant, modest and recognizable institutional styling.",
+    image: "/elvarin/student-identity.jpg",
+    fit: "contain"
   },
   {
-    src: "/elvarin/notebook.jpg",
-    title: "Learning Essentials",
-    caption: "Branded notebook concept",
-    label: "05",
+    title: "Pillars & Brand System",
+    text:
+      "The academy’s principle-based identity system presented with clarity, consistency and educational meaning.",
+    image: "/elvarin/pillars-system.jpg",
+    fit: "contain"
   },
   {
-    src: "/elvarin/stationery.jpg",
-    title: "Academy Stationery",
-    caption: "Institutional stationery concept",
-    label: "06",
-  },
-  {
-    src: "/elvarin/seal.jpg",
-    title: "Academy Seal",
-    caption: "Official identity concept",
-    label: "07",
-  },
-  {
-    src: "/elvarin/brand-board.jpg",
-    title: "Our Brand Identity",
-    caption: "ELVARIN brand presentation",
-    label: "08",
-  },
-];
-
-const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "About" },
-  { href: "#values", label: "Our Values" },
-  { href: "#learning", label: "Learning" },
-  { href: "#environment", label: "Environment" },
-  { href: "#admission", label: "Admission" },
-  { href: "#contact", label: "Contact" },
+    title: "Foundation & Vision",
+    text:
+      "A strong core identity built around the values of knowledge, awareness, righteousness, integrity and Najah.",
+    image: "/elvarin/brand-foundation.jpg",
+    fit: "contain"
+  }
 ];
 
 export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   useEffect(() => {
-    const items = document.querySelectorAll<HTMLElement>(
-      ".elvarin .reveal"
-    );
-
-    if (
-      !("IntersectionObserver" in window) ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      items.forEach((item) => item.classList.add("visible"));
-      return;
-    }
+    const items = document.querySelectorAll(".reveal");
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            observer.unobserve(entry.target);
+            entry.target.classList.add("is-visible");
           }
         });
       },
-      {
-        threshold: 0.08,
-        rootMargin: "0px 0px -35px 0px",
-      }
+      { threshold: 0.12 }
     );
 
-    items.forEach((item) => {
-      item.classList.add("animate-ready");
-      observer.observe(item);
-    });
+    items.forEach((item) => observer.observe(item));
 
     return () => observer.disconnect();
   }, []);
 
-  const closeMenu = () => setMenuOpen(false);
-
   return (
-    <main className="elvarin" id="home">
-      {/* TOP ANNOUNCEMENT BAR */}
-      <div className="top-bar">
-        <span className="top-star">✦</span>
-        EDUCATION · LIFE & LEARNING · VALUES · INTEGRITY · NAJAH
-        <span className="top-star">✦</span>
+    <main className="elvarin-home">
+      {/* TOP STRIP */}
+      <div className="top-strip">
+        EDUCATION • LIFE & LEARNING • VALUES • AWARENESS • RIGHTEOUSNESS •
+        INTEGRITY • NAJAH
       </div>
 
       {/* HEADER */}
       <header className="site-header">
         <div className="container header-inner">
-          <Link href="/" className="brand" onClick={closeMenu}>
-            <span className="brand-logo">
-              <Image
-                src="/elvarin/logo-mark.png"
-                alt="ELVARIN Academy emblem"
-                width={62}
-                height={62}
-                className="logo-img"
-                priority
-              />
-            </span>
-
-            <span className="brand-words">
-              <strong>ELVARIN</strong>
-              <small>ACADEMY</small>
-            </span>
+          <Link href="/" className="brand-block">
+            <div className="brand-mark" />
+            <div className="brand-copy">
+              <span className="brand-title">ELVARIN</span>
+              <span className="brand-subtitle">ACADEMY</span>
+            </div>
           </Link>
 
-          <nav
-            id="main-navigation"
-            className={`navigation ${menuOpen ? "navigation-open" : ""}`}
-            aria-label="Main navigation"
-          >
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={closeMenu}
-              >
-                {link.label}
-              </a>
-            ))}
-
-            <Link
-              href="/admin"
-              className="mobile-portal"
-              onClick={closeMenu}
-            >
-              Admin Portal ↗
-            </Link>
+          <nav className="nav-links">
+            <a href="#home">Home</a>
+            <a href="#about">About</a>
+            <a href="#principles">Principles</a>
+            <a href="#environment">Environment</a>
+            <a href="#operations">Activities</a>
+            <a href="#contact">Contact</a>
           </nav>
 
-          <div className="header-actions">
-            <Link href="/admin" className="portal-button">
-              Admin Portal <span>↗</span>
-            </Link>
-
-            <button
-              type="button"
-              className="menu-toggle"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-              aria-controls="main-navigation"
-              onClick={() => setMenuOpen((current) => !current)}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-          </div>
+          <Link href="/admin" className="portal-btn">
+            Admin Portal
+          </Link>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="hero">
-        <div className="hero-pattern" aria-hidden="true" />
-
-        <div className="container hero-layout">
-          <div className="hero-copy reveal visible">
-            <p className="eyebrow hero-eyebrow">
-              <span className="eyebrow-line" />
-              WELCOME TO ELVARIN ACADEMY
-            </p>
+      <section id="home" className="hero-section">
+        <div className="container hero-grid">
+          <div className="hero-copy reveal">
+            <p className="section-kicker">WELCOME TO ELVARIN ACADEMY</p>
 
             <h1>
-              Education
-              <br />
-              Beyond
-              <br />
-              <em>Excellence.</em>
+              Education Beyond
+              <span> Excellence.</span>
             </h1>
 
-            <p className="hero-intro">
-              Where knowledge meets character, learning
-              inspires growth, and values guide every
-              step towards a meaningful future.
+            <p className="hero-text">
+              A premium educational journey where knowledge meets character,
+              values guide growth, and every experience is shaped with purpose,
+              awareness and integrity.
             </p>
 
-            <div className="hero-buttons">
-              <a className="btn btn-gold" href="#about">
-                Explore Our Academy <span>↗</span>
+            <div className="hero-actions">
+              <a href="#about" className="btn btn-gold">
+                Explore the Academy
               </a>
-
-              <a className="btn btn-light-outline" href="#admission">
-                Admission Information
+              <a href="#operations" className="btn btn-outline">
+                View Key Activities
               </a>
             </div>
 
-            <div className="hero-signature">
-              <span className="signature-line" />
-              LEARN · GROW · ACHIEVE NAJAH
+            <div className="hero-points">
+              <span>Premium Learning Culture</span>
+              <span>Character & Values</span>
+              <span>Meaningful Success</span>
             </div>
           </div>
 
-          <div className="hero-art reveal visible">
-            <div className="hero-art-inner">
-              <div className="hero-gold-corner" />
-
+          <div className="hero-visual reveal">
+            <div className="landscape-frame hero-frame">
               <Image
-                src="/elvarin/logo-mark.png"
-                alt="ELVARIN Academy brand symbol"
-                width={350}
-                height={350}
-                className="hero-emblem"
+                src="/elvarin/brand-applications.jpg"
+                alt="ELVARIN Academy hero visual"
+                fill
                 priority
+                className="img-cover"
               />
-
-              <span className="hero-art-title">
-                KNOWLEDGE
-                <span>✦</span>
-                CHARACTER
-                <span>✦</span>
-                PURPOSE
-              </span>
-            </div>
-
-            <div className="hero-art-footer">
-              <span>ESTABLISHING A CULTURE OF LEARNING</span>
-              <span>✦</span>
             </div>
           </div>
         </div>
-
-        <div className="hero-bottom-border" />
       </section>
 
-      {/* PRINCIPLES STRIP */}
-      <div className="trust-strip">
-        <div className="container trust-row">
-          <div><span>✦</span> Knowledge with Purpose</div>
-          <div><span>✦</span> Growth with Values</div>
-          <div><span>✦</span> Character with Integrity</div>
+      {/* TRUST / IDENTITY STRIP */}
+      <section className="identity-strip">
+        <div className="container identity-grid">
+          <div className="identity-card reveal">
+            <h3>Educational Identity</h3>
+            <p>
+              Designed to feel premium, trustworthy and deeply academic in tone.
+            </p>
+          </div>
+
+          <div className="identity-card reveal">
+            <h3>Value-led Learning</h3>
+            <p>
+              Every learning experience is connected to growth, values and
+              responsibility.
+            </p>
+          </div>
+
+          <div className="identity-card reveal">
+            <h3>Institutional Clarity</h3>
+            <p>
+              A polished structure that presents academics, progress and school
+              activities clearly.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ABOUT */}
-      <section id="about" className="section about-section">
-        <div className="container about-layout">
-          <div className="about-visual reveal">
-            <div className="about-image-shell">
-              <Image
-                src="/elvarin/classroom.jpg"
-                alt="ELVARIN Academy classroom design concept"
-                width={850}
-                height={700}
-                className="cover-image"
-                sizes="(max-width: 800px) 100vw, 48vw"
-              />
-            </div>
-
-            <div className="about-image-tag">
-              <span className="tag-star">✦</span>
-              A VISION FOR
-              <br />
-              MEANINGFUL EDUCATION
-            </div>
-            <p className="image-disclaimer">
-              Classroom concept illustration
-            </p>
-          </div>
-
-          <div className="about-copy reveal">
-            <p className="section-kicker">
-              <span>01</span> / DISCOVER OUR ACADEMY
-            </p>
-
-            <h2 className="section-title">
-              A Foundation
-              <br />
-              for a <em>Meaningful</em>
-              <br />
-              Future.
+      <section id="about" className="section">
+        <div className="container two-col">
+          <div className="copy-col reveal">
+            <p className="section-kicker">01 / ABOUT ELVARIN ACADEMY</p>
+            <h2>
+              A premium academy with a
+              <em> meaningful educational vision.</em>
             </h2>
 
-            <div className="gold-rule" />
-
-            <p className="body-copy">
-              At ELVARIN Academy, we believe education
-              extends far beyond textbooks and examinations.
-              It is a lifelong journey of gaining knowledge,
-              developing character and discovering purpose.
+            <p className="body-text">
+              ELVARIN Academy is envisioned as an institution where education
+              goes beyond the classroom. It is a place where students grow in
+              knowledge, develop strong character and move forward with
+              responsibility, awareness and purpose.
             </p>
 
-            <p className="body-copy">
-              Our educational vision brings together
-              learning, values, awareness, righteousness
-              and integrity, inspiring individuals to
-              pursue success with responsibility.
+            <p className="body-text">
+              The academy’s visual identity, learning atmosphere and student
+              experience are all shaped to reflect a refined, professional and
+              premium educational environment.
             </p>
 
-            <a className="text-action" href="#values">
-              Explore Our Educational Philosophy
-              <span>↗</span>
+            <a href="#principles" className="text-link">
+              Explore Our Guiding Principles →
             </a>
+          </div>
+
+          <div className="media-col reveal">
+            <div className="landscape-frame soft-frame">
+              <Image
+                src="/elvarin/brand-foundation.jpg"
+                alt="ELVARIN Academy brand foundation"
+                fill
+                className="img-contain"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SEVEN PILLARS */}
-      <section id="values" className="section pillars-section">
+      {/* PHILOSOPHY BAND */}
+      <section className="philosophy-band">
+        <div className="container reveal">
+          <p className="section-kicker center-kicker">
+            ELVARIN ACADEMY PHILOSOPHY
+          </p>
+
+          <blockquote>
+            “Education and Life-long Learning, guided by Values and Awareness,
+            shaped by Righteousness and Integrity, leading to Najah.”
+          </blockquote>
+
+          <p className="philosophy-note">
+            A vision rooted in excellence, growth and purposeful success.
+          </p>
+        </div>
+      </section>
+
+      {/* PRINCIPLES */}
+      <section id="principles" className="section soft-section">
         <div className="container">
-          <div className="section-heading reveal">
-            <p className="section-kicker">
-              <span>02</span> / OUR GUIDING PRINCIPLES
-            </p>
-
-            <h2 className="section-title">
-              Seven Pillars.
-              <br />
-              <em>One Purpose.</em>
+          <div className="section-head reveal">
+            <p className="section-kicker">02 / GUIDING PRINCIPLES</p>
+            <h2>
+              Seven pillars.
+              <em> One educational purpose.</em>
             </h2>
-
-            <p className="section-description">
-              The seven guiding principles of ELVARIN
-              reflect our belief that knowledge,
-              character and meaningful success
-              belong together.
+            <p>
+              The academy is guided by seven interconnected values that shape
+              learning, behaviour, responsibility and success.
             </p>
+          </div>
+
+          <div className="wide-visual reveal">
+            <div className="landscape-frame wide-frame">
+              <Image
+                src="/elvarin/pillars-system.jpg"
+                alt="ELVARIN Academy pillars and brand system"
+                fill
+                className="img-contain"
+              />
+            </div>
           </div>
 
           <div className="pillars-grid">
             {pillars.map((pillar, index) => (
               <article
-                className="pillar-card reveal"
                 key={pillar.title}
-                style={{
-                  transitionDelay: `${(index % 4) * 75}ms`,
-                }}
+                className="pillar-card reveal"
+                style={{ transitionDelay: `${index * 40}ms` }}
               >
-                <span className="pillar-index">
-                  0{index + 1}
+                <span className="pillar-number">
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-
-                <span className="pillar-symbol" aria-hidden="true">
-                  {pillar.icon}
-                </span>
-
                 <h3>{pillar.title}</h3>
-                <span className="pillar-subtitle">
-                  {pillar.subtitle}
-                </span>
-
-                <div className="pillar-line" />
-
+                <strong>{pillar.subtitle}</strong>
                 <p>{pillar.description}</p>
               </article>
             ))}
@@ -453,1697 +345,1000 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PHILOSOPHY */}
-      <section className="philosophy-section">
-        <div className="container philosophy-layout reveal">
-          <div className="philosophy-mark" aria-hidden="true">
-            ✦
-          </div>
-
-          <p className="section-kicker">
-            THE ELVARIN EDUCATIONAL PHILOSOPHY
-          </p>
-
-          <blockquote>
-            “Education and Life-long Learning,
-            guided by Values and Awareness,
-            shaped by Righteousness and Integrity,
-            leading to <em>Najah.</em>”
-          </blockquote>
-
-          <div className="philosophy-divider">
-            <span />
-            ✦
-            <span />
-          </div>
-
-          <p className="philosophy-footer">
-            LEARN · GROW · DO GOOD · ACHIEVE NAJAH
-          </p>
-        </div>
-      </section>
-
-      {/* LEARNING */}
-      <section id="learning" className="section learning-section">
+      {/* ENVIRONMENT / SHOWCASE */}
+      <section id="environment" className="section">
         <div className="container">
-          <div className="section-heading reveal">
-            <p className="section-kicker">
-              <span>03</span> / THE LEARNING PHILOSOPHY
-            </p>
-
-            <h2 className="section-title">
-              Learning That
-              <br />
-              Shapes the <em>Whole Person.</em>
+          <div className="section-head reveal">
+            <p className="section-kicker">03 / LEARNING ENVIRONMENT</p>
+            <h2>
+              A refined environment that feels
+              <em> academic, elegant and clear.</em>
             </h2>
-
-            <p className="section-description">
-              A thoughtful educational vision where
-              academic understanding and personal
-              development support one another.
-            </p>
-          </div>
-
-          <div className="learning-layout">
-            {learning.map((item, index) => (
-              <article
-                key={item.number}
-                className="learning-card reveal"
-                style={{ transitionDelay: `${index * 90}ms` }}
-              >
-                <span className="learning-number">
-                  {item.number}
-                </span>
-
-                <div className="learning-card-rule" />
-
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-
-                <span className="learning-arrow" aria-hidden="true">
-                  ↗
-                </span>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ENVIRONMENT */}
-      <section
-        id="environment"
-        className="section environment-section"
-      >
-        <div className="container">
-          <div className="environment-heading reveal">
-            <div>
-              <p className="section-kicker">
-                <span>04</span> / VISUALISING OUR ACADEMY
-              </p>
-
-              <h2 className="section-title">
-                An Environment
-                <br />
-                Designed to <em>Inspire.</em>
-              </h2>
-            </div>
-
-            <p className="environment-intro">
-              Explore the visual direction for ELVARIN
-              Academy, from learning spaces and student
-              identity to thoughtfully designed
-              institutional materials.
-            </p>
-          </div>
-
-          <div className="gallery-grid">
-            {gallery.map((item, index) => (
-              <article
-                key={item.src}
-                className={`gallery-card reveal ${
-                  index === 0 ? "gallery-featured" : ""
-                }`}
-              >
-                <div className="gallery-image-wrap">
-                  <Image
-                    src={item.src}
-                    alt={`${item.title} — ${item.caption}`}
-                    fill
-                    className="gallery-image"
-                    sizes={
-                      index === 0
-                        ? "(max-width: 760px) 100vw, 58vw"
-                        : "(max-width: 760px) 100vw, 33vw"
-                    }
-                  />
-
-                  <span className="gallery-number">
-                    {item.label}
-                  </span>
-                </div>
-
-                <div className="gallery-caption">
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.caption}</p>
-                  </div>
-
-                  <span className="gallery-caption-icon">
-                    ↗
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <p className="gallery-note reveal">
-            Note: Images in this section are brand and
-            architectural concepts, not verified photographs
-            of operational campus facilities.
-          </p>
-        </div>
-      </section>
-
-      {/* IDENTITY */}
-      <section id="identity" className="section identity-section">
-        <div className="container identity-layout">
-          <div className="identity-copy reveal">
-            <p className="section-kicker">
-              <span>05</span> / OUR DISTINCT IDENTITY
-            </p>
-
-            <h2 className="section-title">
-              Rooted in Values.
-              <br />
-              <em>United in Purpose.</em>
-            </h2>
-
-            <p className="body-copy">
-              A strong identity reflects a thoughtful
-              philosophy. ELVARIN's deep green,
-              refined gold and ivory palette expresses
-              knowledge, dignity, aspiration and
-              timeless academic character.
-            </p>
-
-            <div className="color-palette">
-              <div>
-                <span className="color-dot deep-green" />
-                <small>Deep Green</small>
-              </div>
-
-              <div>
-                <span className="color-dot academy-gold" />
-                <small>Gold</small>
-              </div>
-
-              <div>
-                <span className="color-dot academy-ivory" />
-                <small>Ivory</small>
-              </div>
-            </div>
-
-            <div className="identity-quote">
-              “Same Values, Different Paths.
-              <br />
-              One Destination — Najah.”
-            </div>
-          </div>
-
-          <div className="identity-image reveal">
-            <Image
-              src="/elvarin/uniform.jpg"
-              alt="ELVARIN Academy proposed uniform identity"
-              fill
-              sizes="(max-width: 800px) 100vw, 48vw"
-              className="cover-image"
-            />
-            <span className="identity-image-label">
-              PROPOSED STUDENT UNIFORM
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ADMISSION */}
-      <section id="admission" className="section admission-section">
-        <div className="container admission-layout">
-          <div className="admission-copy reveal">
-            <p className="section-kicker">
-              <span>06</span> / THE NEXT CHAPTER
-            </p>
-
-            <h2 className="section-title">
-              Your Journey
-              <br />
-              Towards <em>Najah.</em>
-            </h2>
-
-            <p className="body-copy">
-              Interested in learning more about ELVARIN
-              Academy? Discover our educational vision
-              and follow our journey as official academic
-              programs and admission details are announced.
-            </p>
-          </div>
-
-          <div className="admission-panel reveal">
-            <span className="admission-panel-star">✦</span>
-
-            <p className="panel-eyebrow">
-              ELVARIN ACADEMY
-            </p>
-
-            <h3>Admission & Academic Information</h3>
-
             <p>
-              Program details, eligibility requirements,
-              enrollment procedures and admission dates
-              will be published after official confirmation.
+              Every touchpoint is presented to communicate a strong educational
+              identity — from classroom atmosphere to institutional materials.
+            </p>
+          </div>
+
+          <div className="showcase-grid">
+            {highlights.map((item, index) => (
+              <article
+                className="showcase-card reveal"
+                key={item.title}
+                style={{ transitionDelay: `${index * 50}ms` }}
+              >
+                <div className="landscape-frame showcase-frame">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className={item.fit === "cover" ? "img-cover" : "img-contain"}
+                  />
+                </div>
+                <div className="showcase-body">
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* STUDENT IDENTITY */}
+      <section className="section student-section">
+        <div className="container student-grid">
+          <div className="student-media reveal">
+            <div className="landscape-frame student-frame">
+              <Image
+                src="/elvarin/student-identity.jpg"
+                alt="ELVARIN Academy student identity"
+                fill
+                className="img-contain"
+              />
+            </div>
+          </div>
+
+          <div className="student-copy reveal">
+            <p className="section-kicker">04 / STUDENT IDENTITY</p>
+            <h2>
+              Presentation that reflects
+              <em> discipline, unity and confidence.</em>
+            </h2>
+
+            <p className="body-text">
+              Student identity should feel complete, clear and premium.
+              ELVARIN’s visual direction supports a polished institutional
+              presence through clean styling, strong colors and dignified visual
+              presentation.
             </p>
 
-            <a href="#contact" className="btn btn-gold">
-              Stay Connected <span>↗</span>
-            </a>
+            <ul className="feature-list">
+              <li>Professional and modest presentation</li>
+              <li>Consistent deep green, gold and ivory palette</li>
+              <li>Clear institutional visibility and recognition</li>
+              <li>Designed to strengthen belonging and academy identity</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-            <span className="panel-bottom">
-              LEARN · GROW · ACHIEVE NAJAH
-            </span>
+      {/* OPERATIONS / ACTIVITIES */}
+      <section id="operations" className="section soft-section">
+        <div className="container">
+          <div className="section-head reveal">
+            <p className="section-kicker">05 / ACADEMY ACTIVITIES</p>
+            <h2>
+              Important academic and school functions
+              <em> presented more clearly.</em>
+            </h2>
+            <p>
+              The website should not only look premium — it should also help
+              students and guardians quickly understand the academy’s key
+              functions and ongoing academic activity.
+            </p>
+          </div>
+
+          <div className="operations-grid">
+            {activities.map((item, index) => (
+              <div
+                className="operation-card reveal"
+                key={item}
+                style={{ transitionDelay: `${index * 35}ms` }}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ESSENTIALS */}
+      <section className="section">
+        <div className="container">
+          <div className="section-head reveal">
+            <p className="section-kicker">06 / VISUAL ESSENTIALS</p>
+            <h2>
+              Institutional assets that support
+              <em> trust and professionalism.</em>
+            </h2>
+            <p>
+              From brand system to documents and learning presentation, each
+              asset contributes to a cohesive educational experience.
+            </p>
+          </div>
+
+          <div className="essentials-grid">
+            {essentials.map((item, index) => (
+              <article
+                key={item.title}
+                className="essential-card reveal"
+                style={{ transitionDelay: `${index * 50}ms` }}
+              >
+                <div className="landscape-frame essential-frame">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className={item.fit === "cover" ? "img-cover" : "img-contain"}
+                  />
+                </div>
+                <div className="essential-content">
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section id="admission" className="cta-section">
+        <div className="container cta-grid reveal">
+          <div>
+            <p className="section-kicker">07 / CONNECT WITH ELVARIN</p>
+            <h2>
+              Ready to present ELVARIN Academy
+              <em> with clarity and excellence?</em>
+            </h2>
+            <p className="body-text light-text">
+              This homepage structure is designed to feel more premium,
+              educational and visually organized, while keeping the academy’s
+              values and institutional identity at the center.
+            </p>
+          </div>
+
+          <div className="cta-card">
+            <h3>Next Steps</h3>
+            <p>
+              You can now refine content, replace assets individually and expand
+              the site with admission, results, notices and progress-related
+              sections.
+            </p>
+
+            <div className="cta-actions">
+              <a href="#contact" className="btn btn-gold">
+                Contact Section
+              </a>
+              <Link href="/admin" className="btn btn-dark">
+                Open Admin Portal
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer id="contact" className="site-footer">
-        <div className="container">
-          <div className="footer-top">
-            <div className="footer-brand-block">
-              <div className="footer-brand">
-                <Image
-                  src="/elvarin/logo-mark.png"
-                  alt="ELVARIN Academy emblem"
-                  width={75}
-                  height={75}
-                />
-
-                <div>
-                  <strong>ELVARIN</strong>
-                  <small>ACADEMY</small>
-                </div>
-              </div>
-
-              <p>
-                Education Beyond Excellence. Guided by
-                knowledge, character, awareness,
-                righteousness and integrity.
-              </p>
-
-              <span className="footer-tagline">
-                LEARN · GROW · ACHIEVE NAJAH
-              </span>
-            </div>
-
-            <div className="footer-links">
-              <h3>Explore</h3>
-              <a href="#home">Home</a>
-              <a href="#about">About Academy</a>
-              <a href="#values">Our Seven Pillars</a>
-              <a href="#learning">Learning Philosophy</a>
-              <a href="#environment">Academy Concepts</a>
-            </div>
-
-            <div className="footer-links">
-              <h3>Information</h3>
-              <a href="#identity">Our Identity</a>
-              <a href="#admission">Admission</a>
-              <Link href="/admin">
-                Administrator Portal
-              </Link>
-            </div>
-
-            <div className="footer-contact">
-              <h3>Stay Connected</h3>
-
-              <p>
-                Verified contact information and
-                announcements will be added here.
-              </p>
-
-              <div className="footer-symbol">✦</div>
-            </div>
+        <div className="container footer-grid">
+          <div className="footer-brand">
+            <h2>ELVARIN</h2>
+            <p className="footer-sub">ACADEMY</p>
+            <p>
+              A premium academy experience shaped by education, values,
+              awareness, righteousness, integrity and Najah.
+            </p>
+            <p className="footer-motto">LEARN • GROW • ACHIEVE NAJAH</p>
           </div>
 
-          <div className="footer-bottom">
-            <span>
-              © {new Date().getFullYear()} ELVARIN Academy.
-              All Rights Reserved.
-            </span>
-
-            <span>
-              EDUCATION · VALUES · INTEGRITY · NAJAH
-            </span>
+          <div>
+            <h3>Explore</h3>
+            <a href="#about">About</a>
+            <a href="#principles">Principles</a>
+            <a href="#environment">Environment</a>
+            <a href="#operations">Activities</a>
+            <a href="#admission">Next Steps</a>
           </div>
+
+          <div>
+            <h3>Portal</h3>
+            <p>
+              Administrative tools, student management and other operational
+              features remain accessible through the admin portal.
+            </p>
+            <Link href="/admin">Go to Administrator Portal</Link>
+          </div>
+        </div>
+
+        <div className="container footer-bottom">
+          <span>© {new Date().getFullYear()} ELVARIN Academy. All Rights Reserved.</span>
+          <span>Education Beyond Excellence</span>
         </div>
       </footer>
 
-      {/* BACK TO TOP */}
-      <a
-        href="#home"
-        className="back-to-top"
-        aria-label="Back to top"
-      >
-        ↑
-      </a>
-
-      {/* STYLES */}
-      <style>{`
-        .elvarin {
-          --green: #064535;
-          --green-dark: #04372E;
-          --green-deep: #032D26;
-          --gold: #C6A052;
-          --gold-light: #E0BF7B;
-          --ivory: #FAF8F2;
-          --text: #153D33;
-          --muted: #66766D;
-          background: var(--ivory);
-          color: var(--text);
-          font-family: Arial, Helvetica, sans-serif;
-          overflow: clip;
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
         }
 
-        .elvarin *,
-        .elvarin *::before,
-        .elvarin *::after {
+        body {
+          margin: 0;
+          background: #faf8f2;
+        }
+
+        .elvarin-home {
+          --green: #0a5a47;
+          --green-dark: #063e33;
+          --green-soft: #edf4f0;
+          --gold: #c7a24f;
+          --gold-deep: #b38934;
+          --ivory: #faf8f2;
+          --card: #fffdf8;
+          --text: #163b33;
+          --muted: #60756d;
+          --line: #e2dac8;
+          color: var(--text);
+          background: var(--ivory);
+          font-family: Arial, Helvetica, sans-serif;
+          overflow-x: hidden;
+        }
+
+        .elvarin-home * {
           box-sizing: border-box;
         }
 
-        .elvarin a {
-          text-decoration: none;
+        .elvarin-home a {
           color: inherit;
+          text-decoration: none;
         }
 
-        .elvarin button {
-          font: inherit;
-        }
-
-        .elvarin a:focus-visible,
-        .elvarin button:focus-visible {
-          outline: 3px solid #D5AA52;
-          outline-offset: 4px;
-        }
-
-        .elvarin .container {
-          max-width: 1230px;
+        .container {
+          width: min(1180px, calc(100% - 40px));
           margin: 0 auto;
-          padding: 0 28px;
         }
 
-        .elvarin .section {
-          padding: 116px 0;
+        .top-strip {
+          background: #073e33;
+          color: #dfc27f;
+          text-align: center;
+          padding: 12px 18px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.8px;
+          line-height: 1.7;
         }
 
-        .elvarin section[id] {
-          scroll-margin-top: 110px;
+        .site-header {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(250, 248, 242, 0.94);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(10, 90, 71, 0.08);
         }
 
-        .elvarin .reveal {
-          opacity: 1;
-          transform: none;
+        .header-inner {
+          min-height: 88px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
         }
 
-        .elvarin .reveal.animate-ready:not(.visible) {
+        .brand-block {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: fit-content;
+        }
+
+        .brand-mark {
+          width: 16px;
+          height: 42px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, var(--gold), var(--green));
+          box-shadow: 0 0 0 4px rgba(199, 162, 79, 0.12);
+        }
+
+        .brand-copy {
+          display: flex;
+          flex-direction: column;
+          line-height: 1;
+        }
+
+        .brand-title {
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 28px;
+          font-weight: 700;
+          color: var(--green-dark);
+          letter-spacing: 0.8px;
+        }
+
+        .brand-subtitle {
+          margin-top: 4px;
+          font-size: 11px;
+          letter-spacing: 5px;
+          color: var(--gold-deep);
+          font-weight: 700;
+        }
+
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .nav-links a {
+          font-size: 13px;
+          font-weight: 700;
+          color: #244b40;
+          transition: 0.25s ease;
+        }
+
+        .nav-links a:hover {
+          color: var(--gold-deep);
+        }
+
+        .portal-btn {
+          padding: 12px 18px;
+          background: var(--green-dark);
+          color: white !important;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          box-shadow: 0 10px 30px rgba(6, 62, 51, 0.16);
+          white-space: nowrap;
+        }
+
+        .hero-section {
+          background:
+            radial-gradient(circle at 85% 10%, rgba(199, 162, 79, 0.18), transparent 24%),
+            linear-gradient(135deg, #063e33 0%, #0b644f 100%);
+          color: white;
+          padding: 54px 0 70px;
+        }
+
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.02fr;
+          gap: 48px;
+          align-items: center;
+        }
+
+        .section-kicker {
+          color: #d8ba73;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          margin: 0 0 14px;
+        }
+
+        .center-kicker {
+          text-align: center;
+        }
+
+        .hero-copy h1,
+        .section h2,
+        .cta-section h2 {
+          margin: 0;
+          font-family: Georgia, "Times New Roman", serif;
+          font-weight: 700;
+          line-height: 1.08;
+          letter-spacing: -0.5px;
+        }
+
+        .hero-copy h1 {
+          font-size: clamp(42px, 7vw, 78px);
+          max-width: 640px;
+        }
+
+        .hero-copy h1 span {
+          display: block;
+          color: #e1c98a;
+          font-style: italic;
+        }
+
+        .hero-text {
+          max-width: 610px;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 17px;
+          line-height: 1.9;
+          margin: 22px 0 0;
+        }
+
+        .hero-actions {
+          display: flex;
+          gap: 14px;
+          flex-wrap: wrap;
+          margin-top: 34px;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 50px;
+          padding: 14px 22px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          transition: 0.28s ease;
+        }
+
+        .btn-gold {
+          background: linear-gradient(180deg, #d6b86a, #bf943e);
+          color: #0a392f !important;
+          box-shadow: 0 10px 28px rgba(191, 148, 62, 0.24);
+        }
+
+        .btn-gold:hover {
+          transform: translateY(-2px);
+        }
+
+        .btn-outline {
+          border: 1px solid rgba(255, 255, 255, 0.26);
+          color: white !important;
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-dark {
+          background: #072f27;
+          color: white !important;
+        }
+
+        .hero-points {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 30px;
+        }
+
+        .hero-points span {
+          padding: 10px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: 999px;
+          font-size: 11px;
+          letter-spacing: 0.7px;
+          color: #ebdfbf;
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .landscape-frame {
+          position: relative;
+          width: 100%;
+          border-radius: 28px;
+          overflow: hidden;
+          background: #f3efe5;
+          border: 1px solid rgba(7, 62, 51, 0.08);
+        }
+
+        .hero-frame {
+          aspect-ratio: 16 / 10;
+          box-shadow: 0 20px 70px rgba(0, 0, 0, 0.24);
+        }
+
+        .wide-frame,
+        .showcase-frame,
+        .essential-frame,
+        .student-frame,
+        .soft-frame {
+          aspect-ratio: 16 / 9;
+        }
+
+        .img-cover,
+        .img-contain {
+          object-position: center;
+        }
+
+        .img-cover {
+          object-fit: cover;
+        }
+
+        .img-contain {
+          object-fit: contain;
+          padding: 10px;
+          background: linear-gradient(180deg, #fffdf8, #f7f2e7);
+        }
+
+        .identity-strip {
+          padding: 26px 0;
+          background: #f0f3ef;
+          border-bottom: 1px solid rgba(10, 90, 71, 0.08);
+        }
+
+        .identity-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 18px;
+        }
+
+        .identity-card {
+          background: rgba(255, 255, 255, 0.7);
+          border: 1px solid #dde6e1;
+          border-radius: 20px;
+          padding: 24px;
+        }
+
+        .identity-card h3,
+        .showcase-body h3,
+        .essential-content h3,
+        .cta-card h3 {
+          margin: 0 0 10px;
+          font-size: 20px;
+          font-family: Georgia, "Times New Roman", serif;
+          color: var(--green-dark);
+        }
+
+        .identity-card p,
+        .showcase-body p,
+        .essential-content p,
+        .cta-card p {
+          margin: 0;
+          color: var(--muted);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
+        .section {
+          padding: 96px 0;
+        }
+
+        .soft-section {
+          background: linear-gradient(180deg, #f3f5f0 0%, #faf8f2 100%);
+        }
+
+        .two-col,
+        .student-grid,
+        .cta-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 48px;
+          align-items: center;
+        }
+
+        .section h2,
+        .cta-section h2 {
+          font-size: clamp(34px, 5vw, 58px);
+          color: var(--green-dark);
+          margin-bottom: 22px;
+        }
+
+        .section h2 em,
+        .cta-section h2 em {
+          color: var(--gold-deep);
+          font-style: italic;
+          font-weight: 700;
+        }
+
+        .body-text {
+          color: var(--muted);
+          font-size: 16px;
+          line-height: 1.95;
+          margin: 0 0 18px;
+        }
+
+        .light-text {
+          color: rgba(255, 255, 255, 0.78);
+        }
+
+        .text-link {
+          display: inline-block;
+          margin-top: 8px;
+          color: var(--green) !important;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .philosophy-band {
+          padding: 90px 0;
+          background:
+            radial-gradient(circle at 20% 10%, rgba(214, 184, 106, 0.18), transparent 22%),
+            linear-gradient(135deg, #063e33 0%, #0a5a47 100%);
+          color: white;
+          text-align: center;
+        }
+
+        .philosophy-band blockquote {
+          max-width: 980px;
+          margin: 0 auto;
+          font-family: Georgia, "Times New Roman", serif;
+          font-style: italic;
+          font-size: clamp(24px, 3.2vw, 40px);
+          line-height: 1.65;
+          color: #f6f0df;
+        }
+
+        .philosophy-note {
+          margin-top: 20px;
+          color: #d9bc79;
+          font-size: 12px;
+          letter-spacing: 1.6px;
+          text-transform: uppercase;
+        }
+
+        .section-head {
+          max-width: 860px;
+          margin: 0 auto 38px;
+          text-align: center;
+        }
+
+        .section-head p:last-child {
+          color: var(--muted);
+          font-size: 16px;
+          line-height: 1.85;
+          margin: 0;
+        }
+
+        .wide-visual {
+          margin-bottom: 30px;
+        }
+
+        .pillars-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 18px;
+        }
+
+        .pillar-card {
+          background: var(--card);
+          border: 1px solid #e8dfcf;
+          border-radius: 22px;
+          padding: 24px 22px;
+          min-height: 230px;
+          box-shadow: 0 10px 30px rgba(7, 62, 51, 0.04);
+        }
+
+        .pillar-number {
+          display: inline-flex;
+          width: 44px;
+          height: 44px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          background: rgba(199, 162, 79, 0.14);
+          color: var(--gold-deep);
+          font-size: 12px;
+          font-weight: 700;
+          margin-bottom: 16px;
+        }
+
+        .pillar-card h3 {
+          margin: 0 0 8px;
+          font-size: 22px;
+          font-family: Georgia, "Times New Roman", serif;
+          color: var(--green-dark);
+        }
+
+        .pillar-card strong {
+          display: block;
+          margin-bottom: 10px;
+          font-size: 12px;
+          color: var(--gold-deep);
+          letter-spacing: 0.4px;
+        }
+
+        .pillar-card p {
+          margin: 0;
+          color: var(--muted);
+          font-size: 13px;
+          line-height: 1.8;
+        }
+
+        .showcase-grid,
+        .essentials-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+
+        .showcase-card,
+        .essential-card {
+          background: var(--card);
+          border-radius: 24px;
+          overflow: hidden;
+          border: 1px solid #e7dfcf;
+          box-shadow: 0 14px 40px rgba(7, 62, 51, 0.05);
+        }
+
+        .showcase-body,
+        .essential-content {
+          padding: 22px;
+        }
+
+        .student-section {
+          background: linear-gradient(180deg, #faf8f2 0%, #f1f5f2 100%);
+        }
+
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 28px 0 0;
+          display: grid;
+          gap: 12px;
+        }
+
+        .feature-list li {
+          position: relative;
+          padding-left: 24px;
+          color: var(--muted);
+          font-size: 15px;
+          line-height: 1.8;
+        }
+
+        .feature-list li::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 10px;
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, var(--gold), var(--green));
+        }
+
+        .operations-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+
+        .operation-card {
+          padding: 20px 18px;
+          border-radius: 18px;
+          background: white;
+          border: 1px solid #e9e1d2;
+          min-height: 120px;
+          box-shadow: 0 10px 30px rgba(7, 62, 51, 0.04);
+        }
+
+        .operation-card span {
+          display: inline-block;
+          margin-bottom: 10px;
+          color: var(--gold-deep);
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .operation-card p {
+          margin: 0;
+          color: var(--text);
+          font-size: 14px;
+          line-height: 1.65;
+          font-weight: 700;
+        }
+
+        .cta-section {
+          padding: 96px 0;
+          background:
+            radial-gradient(circle at 85% 20%, rgba(214, 184, 106, 0.18), transparent 24%),
+            linear-gradient(135deg, #063e33 0%, #0b644f 100%);
+          color: white;
+        }
+
+        .cta-card {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 24px;
+          padding: 30px;
+          backdrop-filter: blur(10px);
+        }
+
+        .cta-card h3 {
+          color: white;
+        }
+
+        .cta-card p {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .cta-actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 24px;
+        }
+
+        .site-footer {
+          background: #052f28;
+          color: white;
+          padding: 70px 0 24px;
+        }
+
+        .footer-grid {
+          display: grid;
+          grid-template-columns: 1.6fr 0.9fr 1.1fr;
+          gap: 44px;
+        }
+
+        .footer-brand h2 {
+          margin: 0;
+          font-size: 36px;
+          font-family: Georgia, "Times New Roman", serif;
+          color: white;
+        }
+
+        .footer-sub {
+          margin: 8px 0 18px;
+          color: #dbbe79;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 4px;
+        }
+
+        .footer-grid h3 {
+          margin: 0 0 12px;
+          color: #dbbe79;
+          font-size: 14px;
+          letter-spacing: 0.4px;
+        }
+
+        .footer-grid p,
+        .footer-grid a {
+          color: #c8d8d1;
+          font-size: 14px;
+          line-height: 1.85;
+        }
+
+        .footer-grid a {
+          display: block;
+          margin: 10px 0;
+        }
+
+        .footer-motto {
+          color: #dbbe79 !important;
+          font-size: 11px !important;
+          letter-spacing: 1.8px;
+          text-transform: uppercase;
+          margin-top: 18px;
+        }
+
+        .footer-bottom {
+          border-top: 1px solid rgba(255, 255, 255, 0.14);
+          margin-top: 40px;
+          padding-top: 18px;
+          display: flex;
+          justify-content: space-between;
+          gap: 18px;
+          color: #bccbc5;
+          font-size: 11px;
+        }
+
+        .reveal {
           opacity: 0;
-          transform: translateY(35px);
-        }
-
-        .elvarin .reveal.animate-ready {
+          transform: translateY(36px);
           transition:
-            opacity 800ms ease,
-            transform 800ms cubic-bezier(.22,1,.36,1);
+            opacity 0.8s ease,
+            transform 0.8s ease;
+          will-change: transform, opacity;
         }
 
-        .elvarin .reveal.visible {
+        .reveal.is-visible {
           opacity: 1;
           transform: translateY(0);
         }
 
-        .elvarin .top-bar {
-          min-height: 36px;
-          padding: 10px 15px;
-          text-align: center;
-          background: #032F27;
-          color: #DFC283;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 2px;
-          line-height: 1.6;
-        }
-
-        .elvarin .top-star {
-          margin: 0 18px;
-          color: #DFC283;
-        }
-
-        .elvarin .site-header {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          background: rgba(255,253,248,.97);
-          backdrop-filter: blur(16px);
-          border-bottom: 1px solid #E7E3D8;
-        }
-
-        .elvarin .header-inner {
-          min-height: 88px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 24px;
-        }
-
-        .elvarin .brand,
-        .elvarin .footer-brand {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .elvarin .brand-logo {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .elvarin .logo-img {
-          width: 58px;
-          height: 58px;
-          object-fit: contain;
-        }
-
-        .elvarin .brand-words,
-        .elvarin .footer-brand div {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .elvarin .brand-words strong {
-          font: bold 24px Georgia, serif;
-          letter-spacing: 1px;
-          color: #043D32;
-        }
-
-        .elvarin .brand-words small {
-          margin-top: 3px;
-          color: #9C7632;
-          letter-spacing: 5px;
-          font-size: 9px;
-        }
-
-        .elvarin .navigation {
-          display: flex;
-          align-items: center;
-          gap: 21px;
-        }
-
-        .elvarin .navigation a {
-          font-size: 12px;
-          font-weight: 600;
-          color: #26483C;
-          transition: color .25s ease;
-          white-space: nowrap;
-        }
-
-        .elvarin .navigation a:hover {
-          color: #B08B43;
-        }
-
-        .elvarin .portal-button {
-          display: inline-flex;
-          gap: 12px;
-          align-items: center;
-          border: 1px solid #075140;
-          color: #064535;
-          padding: 13px 16px;
-          font-size: 12px;
-          font-weight: 700;
-          transition: background .25s, color .25s;
-          white-space: nowrap;
-        }
-
-        .elvarin .portal-button:hover {
-          background: #064535;
-          color: #FFFFFF;
-        }
-
-        .elvarin .header-actions {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .elvarin .menu-toggle,
-        .elvarin .mobile-portal {
-          display: none;
-        }
-
-        .elvarin .hero {
-          position: relative;
-          background:
-            radial-gradient(circle at 88% 22%,
-              rgba(18,118,91,.65), transparent 45%),
-            linear-gradient(125deg,#04362D,#08614F);
-          color: #FFFFFF;
-          overflow: hidden;
-        }
-
-        .elvarin .hero-pattern {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: .2;
-          background-image:
-            linear-gradient(90deg,
-              transparent 98%,rgba(255,255,255,.12) 99%),
-            linear-gradient(0deg,
-              transparent 98%,rgba(255,255,255,.12) 99%);
-          background-size: 65px 65px;
-        }
-
-        .elvarin .hero-layout {
-          position: relative;
-          display: grid;
-          grid-template-columns: 1.05fr .95fr;
-          align-items: center;
-          gap: 70px;
-          min-height: 690px;
-          padding-top: 90px;
-          padding-bottom: 90px;
-        }
-
-        .elvarin .eyebrow,
-        .elvarin .section-kicker {
-          color: #BC9548;
-          letter-spacing: 2.5px;
-          font-size: 11px;
-          font-weight: 700;
-          line-height: 1.7;
-          text-transform: uppercase;
-        }
-
-        .elvarin .hero-eyebrow {
-          display: flex;
-          align-items: center;
-          gap: 13px;
-          color: #E3C889;
-        }
-
-        .elvarin .eyebrow-line {
-          width: 26px;
-          height: 1px;
-          background: #E3C889;
-        }
-
-        .elvarin .hero h1 {
-          font: 400 clamp(53px,6.8vw,91px)/1.06 Georgia,serif;
-          letter-spacing: -2px;
-          margin: 25px 0;
-        }
-
-        .elvarin .hero h1 em {
-          font-weight: 400;
-          color: #E0BB70;
-        }
-
-        .elvarin .hero-intro {
-          max-width: 525px;
-          color: #DCE9E2;
-          font-size: 17px;
-          line-height: 1.95;
-          margin: 0;
-        }
-
-        .elvarin .hero-buttons {
-          display: flex;
-          gap: 14px;
-          flex-wrap: wrap;
-          margin-top: 35px;
-        }
-
-        .elvarin .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          min-height: 50px;
-          padding: 14px 23px;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: .3px;
-          transition:
-            transform .25s ease,
-            background .25s ease,
-            box-shadow .25s ease;
-        }
-
-        .elvarin .btn:hover {
-          transform: translateY(-3px);
-        }
-
-        .elvarin .btn-gold {
-          background: #D9B46B;
-          color: #073C31;
-        }
-
-        .elvarin .btn-gold:hover {
-          background: #E8C985;
-          box-shadow: 0 8px 25px rgba(0,0,0,.14);
-        }
-
-        .elvarin .btn-light-outline {
-          border: 1px solid rgba(255,255,255,.65);
-          color: #FFFFFF;
-        }
-
-        .elvarin .btn-light-outline:hover {
-          background: rgba(255,255,255,.1);
-        }
-
-        .elvarin .hero-signature {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-top: 60px;
-          color: #DBC188;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 2.8px;
-        }
-
-        .elvarin .signature-line {
-          width: 35px;
-          height: 1px;
-          background: #CFA85B;
-        }
-
-        .elvarin .hero-art {
-          position: relative;
-          min-width: 0;
-        }
-
-        .elvarin .hero-art-inner {
-          min-height: 465px;
-          padding: 45px;
-          border-radius: 235px 235px 7px 7px;
-          border: 1px solid rgba(231,200,134,.54);
-          background:
-            radial-gradient(circle at 50% 30%, #14755D, #04382F);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .elvarin .hero-art-inner::after {
-          content: "";
-          position: absolute;
-          inset: 17px;
-          border: 1px solid rgba(229,190,109,.28);
-          border-radius: 220px 220px 4px 4px;
-          pointer-events: none;
-        }
-
-        .elvarin .hero-gold-corner {
-          position: absolute;
-          top: 37px;
-          left: 50%;
-          width: 8px;
-          height: 8px;
-          background: #DFC17E;
-          transform: translateX(-50%) rotate(45deg);
-        }
-
-        .elvarin .hero-emblem {
-          width: 100%;
-          max-width: 320px;
-          height: auto;
-          object-fit: contain;
-          filter: drop-shadow(0 16px 25px rgba(0,0,0,.17));
-          position: relative;
-          z-index: 1;
-        }
-
-        .elvarin .hero-art-title {
-          color: #E5CB92;
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          font-size: 9px;
-          letter-spacing: 2px;
-          margin-top: 17px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .elvarin .hero-art-footer {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 17px;
-          font-size: 9px;
-          letter-spacing: 2px;
-          color: #E1C789;
-        }
-
-        .elvarin .hero-bottom-border {
-          height: 5px;
-          background: linear-gradient(90deg,#084535,#D6B46E,#084535);
-        }
-
-        .elvarin .trust-strip {
-          background: #EFEEE4;
-          border-bottom: 1px solid #E1DFD0;
-        }
-
-        .elvarin .trust-row {
-          display: grid;
-          grid-template-columns: repeat(3,1fr);
-          text-align: center;
-          gap: 15px;
-          padding-top: 23px;
-          padding-bottom: 23px;
-          font-size: 11px;
-          letter-spacing: 1.3px;
-          text-transform: uppercase;
-          font-weight: 700;
-        }
-
-        .elvarin .trust-row span {
-          color: #B48A40;
-          margin-right: 10px;
-        }
-
-        .elvarin .about-layout {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          align-items: center;
-          gap: 95px;
-        }
-
-        .elvarin .about-visual {
-          position: relative;
-        }
-
-        .elvarin .about-image-shell {
-          position: relative;
-          aspect-ratio: 4 / 4.3;
-          overflow: hidden;
-          background: #E7E4DC;
-        }
-
-        .elvarin .cover-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .elvarin .about-image-tag {
-          position: absolute;
-          bottom: 50px;
-          right: -26px;
-          background: #064535;
-          color: #FFFFFF;
-          padding: 25px 30px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 1.5px;
-          line-height: 1.8;
-          box-shadow: 0 12px 30px rgba(0,0,0,.12);
-        }
-
-        .elvarin .tag-star {
-          display: block;
-          color: #D9B46B;
-          font-size: 27px;
-          margin-bottom: 6px;
-        }
-
-        .elvarin .image-disclaimer {
-          font-size: 11px;
-          color: #7B827A;
-          margin-top: 12px;
-        }
-
-        .elvarin .section-kicker span {
-          color: #587164;
-          margin-right: 8px;
-        }
-
-        .elvarin .section-title {
-          font: 400 clamp(38px,4.7vw,60px)/1.17 Georgia,serif;
-          letter-spacing: -1px;
-          margin: 19px 0 25px;
-          color: #073F33;
-        }
-
-        .elvarin .section-title em {
-          color: #B28B45;
-          font-weight: 400;
-        }
-
-        .elvarin .gold-rule {
-          width: 52px;
-          height: 2px;
-          background: #C6A052;
-          margin: 30px 0;
-        }
-
-        .elvarin .body-copy {
-          color: #617469;
-          font-size: 16px;
-          line-height: 1.95;
-          margin: 0 0 20px;
-        }
-
-        .elvarin .text-action {
-          display: inline-flex;
-          align-items: center;
-          gap: 20px;
-          margin-top: 22px;
-          color: #07513F;
-          font-size: 13px;
-          font-weight: 700;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #B18C49;
-          transition: gap .25s;
-        }
-
-        .elvarin .text-action:hover {
-          gap: 30px;
-        }
-
-        .elvarin .pillars-section {
-          background: #F0F0E8;
-        }
-
-        .elvarin .section-heading {
-          max-width: 770px;
-          margin: 0 auto 55px;
-          text-align: center;
-        }
-
-        .elvarin .section-description {
-          max-width: 620px;
-          margin: 0 auto;
-          color: #64776A;
-          font-size: 16px;
-          line-height: 1.9;
-        }
-
-        .elvarin .pillars-grid {
-          display: grid;
-          grid-template-columns: repeat(4,minmax(0,1fr));
-          gap: 19px;
-        }
-
-        .elvarin .pillar-card {
-          position: relative;
-          min-height: 294px;
-          padding: 28px 25px;
-          background: #FFFEFA;
-          border: 1px solid #E5DFD1;
-          transition:
-            transform .35s ease,
-            box-shadow .35s ease,
-            border-color .35s ease;
-        }
-
-        .elvarin .pillar-card:hover {
-          transform: translateY(-7px);
-          box-shadow: 0 18px 40px rgba(10,65,46,.09);
-          border-color: #CFB16F;
-        }
-
-        .elvarin .pillar-index {
-          position: absolute;
-          right: 23px;
-          top: 24px;
-          color: #B7B4A5;
-          font-size: 11px;
-        }
-
-        .elvarin .pillar-symbol {
-          display: block;
-          font-size: 39px;
-          color: #B38C42;
-          margin: 12px 0 20px;
-          line-height: 1;
-        }
-
-        .elvarin .pillar-card h3 {
-          font: 23px Georgia,serif;
-          color: #064535;
-          margin: 0 0 8px;
-        }
-
-        .elvarin .pillar-subtitle {
-          color: #B28C46;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .7px;
-        }
-
-        .elvarin .pillar-line {
-          width: 30px;
-          height: 1px;
-          background: #CFB36F;
-          margin: 21px 0 13px;
-        }
-
-        .elvarin .pillar-card p {
-          color: #66796F;
-          font-size: 13px;
-          line-height: 1.8;
-          margin: 0;
-        }
-
-        .elvarin .philosophy-section {
-          padding: 100px 0;
-          background:
-            radial-gradient(circle at 50% 0%,
-              rgba(23,102,77,.45),transparent 55%),
-            #053C31;
-          text-align: center;
-          color: #FFFFFF;
-        }
-
-        .elvarin .philosophy-layout {
-          max-width: 1010px;
-        }
-
-        .elvarin .philosophy-mark {
-          color: #DAB777;
-          font-size: 36px;
-          margin-bottom: 25px;
-        }
-
-        .elvarin .philosophy-section .section-kicker {
-          color: #E3C586;
-        }
-
-        .elvarin .philosophy-section blockquote {
-          font: italic clamp(25px,3.5vw,44px)/1.6 Georgia,serif;
-          color: #F3EDE2;
-          margin: 35px 0;
-        }
-
-        .elvarin .philosophy-section blockquote em {
-          color: #DFBF79;
-        }
-
-        .elvarin .philosophy-divider {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 18px;
-          color: #D9B46B;
-          margin-bottom: 24px;
-        }
-
-        .elvarin .philosophy-divider span {
-          width: 62px;
-          height: 1px;
-          background: #B3945A;
-        }
-
-        .elvarin .philosophy-footer {
-          color: #D4BC85;
-          font-size: 10px;
-          letter-spacing: 2.8px;
-        }
-
-        .elvarin .learning-layout {
-          display: grid;
-          grid-template-columns: repeat(3,minmax(0,1fr));
-          gap: 24px;
-        }
-
-        .elvarin .learning-card {
-          position: relative;
-          background: #FFFFFF;
-          padding: 40px 32px 55px;
-          border: 1px solid #EBE5D8;
-          border-top: 3px solid #C6A052;
-          box-shadow: 0 12px 35px rgba(8,51,38,.04);
-          min-height: 325px;
-        }
-
-        .elvarin .learning-number {
-          font: 40px Georgia,serif;
-          color: #C6A052;
-        }
-
-        .elvarin .learning-card-rule {
-          width: 37px;
-          height: 1px;
-          background: #D4B674;
-          margin: 23px 0;
-        }
-
-        .elvarin .learning-card h3 {
-          font: 27px/1.3 Georgia,serif;
-          color: #073F34;
-          margin: 0 0 18px;
-        }
-
-        .elvarin .learning-card p {
-          font-size: 14px;
-          line-height: 1.9;
-          color: #67796F;
-        }
-
-        .elvarin .learning-arrow {
-          position: absolute;
-          right: 26px;
-          bottom: 23px;
-          color: #B18A43;
-          font-size: 21px;
-        }
-
-        .elvarin .environment-section {
-          background: #F0EFE7;
-        }
-
-        .elvarin .environment-heading {
-          display: grid;
-          grid-template-columns: 1.1fr .9fr;
-          align-items: end;
-          gap: 45px;
-          margin-bottom: 48px;
-        }
-
-        .elvarin .environment-intro {
-          color: #63756A;
-          font-size: 16px;
-          line-height: 1.9;
-          padding-bottom: 13px;
-        }
-
-        .elvarin .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(3,minmax(0,1fr));
-          gap: 19px;
-        }
-
-        .elvarin .gallery-featured {
-          grid-column: span 2;
-        }
-
-        .elvarin .gallery-card {
-          background: #FFFEFB;
-          border: 1px solid #E6E0D3;
-          overflow: hidden;
-          min-width: 0;
-        }
-
-        .elvarin .gallery-image-wrap {
-          position: relative;
-          aspect-ratio: 1.35 / 1;
-          overflow: hidden;
-          background: #E2E1D8;
-        }
-
-        .elvarin .gallery-featured .gallery-image-wrap {
-          aspect-ratio: 2.15 / 1;
-        }
-
-        .elvarin .gallery-image {
-          object-fit: cover;
-          transition: transform .7s cubic-bezier(.22,1,.36,1);
-        }
-
-        .elvarin .gallery-card:hover .gallery-image {
-          transform: scale(1.055);
-        }
-
-        .elvarin .gallery-number {
-          position: absolute;
-          top: 17px;
-          left: 18px;
-          background: rgba(4,55,45,.9);
-          color: #E4C78C;
-          padding: 9px 12px;
-          font-size: 11px;
-        }
-
-        .elvarin .gallery-caption {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 21px 23px;
-        }
-
-        .elvarin .gallery-caption h3 {
-          font: 21px Georgia,serif;
-          color: #063F33;
-          margin: 0 0 7px;
-        }
-
-        .elvarin .gallery-caption p {
-          color: #728075;
-          font-size: 12px;
-          margin: 0;
-        }
-
-        .elvarin .gallery-caption-icon {
-          color: #BC9750;
-          font-size: 20px;
-        }
-
-        .elvarin .gallery-note {
-          color: #788177;
-          margin: 24px 0 0;
-          font-size: 12px;
-          line-height: 1.7;
-        }
-
-        .elvarin .identity-layout {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 80px;
-          align-items: center;
-        }
-
-        .elvarin .identity-image {
-          position: relative;
-          min-height: 545px;
-          background: #EAE6DE;
-          overflow: hidden;
-        }
-
-        .elvarin .identity-image-label {
-          position: absolute;
-          bottom: 20px;
-          left: 20px;
-          background: #054638;
-          color: #E9D09B;
-          font-size: 10px;
-          letter-spacing: 1.8px;
-          padding: 13px 16px;
-        }
-
-        .elvarin .color-palette {
-          display: flex;
-          gap: 22px;
-          flex-wrap: wrap;
-          margin: 32px 0;
-        }
-
-        .elvarin .color-palette > div {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .elvarin .color-palette small {
-          color: #6A756A;
-          font-size: 11px;
-        }
-
-        .elvarin .color-dot {
-          display: block;
-          width: 45px;
-          height: 45px;
-          border-radius: 50%;
-          border: 1px solid rgba(0,0,0,.09);
-        }
-
-        .elvarin .deep-green {
-          background: #064535;
-        }
-
-        .elvarin .academy-gold {
-          background: #C6A052;
-        }
-
-        .elvarin .academy-ivory {
-          background: #FAF8F2;
-        }
-
-        .elvarin .identity-quote {
-          font: italic 21px/1.65 Georgia,serif;
-          color: #0A5040;
-          border-left: 2px solid #C6A052;
-          padding-left: 20px;
-          margin-top: 30px;
-        }
-
-        .elvarin .admission-section {
-          background: #E9ECE4;
-        }
-
-        .elvarin .admission-layout {
-          display: grid;
-          grid-template-columns: 1.05fr .95fr;
-          gap: 75px;
-          align-items: center;
-        }
-
-        .elvarin .admission-panel {
-          position: relative;
-          padding: 50px 45px;
-          background:
-            radial-gradient(circle at 85% 15%,
-              #12614E,transparent 60%),
-            #043C31;
-          color: #FFFFFF;
-          min-height: 390px;
-          overflow: hidden;
-        }
-
-        .elvarin .admission-panel-star {
-          color: #D8B570;
-          font-size: 30px;
-        }
-
-        .elvarin .panel-eyebrow {
-          color: #D9B975;
-          font-size: 10px;
-          letter-spacing: 2.5px;
-          margin: 22px 0;
-        }
-
-        .elvarin .admission-panel h3 {
-          font: 34px/1.25 Georgia,serif;
-          margin: 0 0 22px;
-        }
-
-        .elvarin .admission-panel > p:not(.panel-eyebrow) {
-          color: #D4E5DA;
-          font-size: 15px;
-          line-height: 1.9;
-          margin-bottom: 28px;
-        }
-
-        .elvarin .panel-bottom {
-          display: block;
-          margin-top: 45px;
-          color: #D8BC7A;
-          font-size: 9px;
-          letter-spacing: 2px;
-        }
-
-        .elvarin .site-footer {
-          background: #032F28;
-          padding: 80px 0 25px;
-          color: #FFFFFF;
-        }
-
-        .elvarin .footer-top {
-          display: grid;
-          grid-template-columns: 2fr 1fr 1fr 1.2fr;
-          gap: 45px;
-        }
-
-        .elvarin .footer-brand img {
-          object-fit: contain;
-        }
-
-        .elvarin .footer-brand strong {
-          font: 30px Georgia,serif;
-          letter-spacing: 1px;
-        }
-
-        .elvarin .footer-brand small {
-          color: #D7B875;
-          font-size: 10px;
-          letter-spacing: 5px;
-          margin-top: 5px;
-        }
-
-        .elvarin .footer-brand-block > p,
-        .elvarin .footer-contact p {
-          max-width: 310px;
-          font-size: 13px;
-          line-height: 1.9;
-          color: #C3D5CA;
-          margin: 25px 0;
-        }
-
-        .elvarin .footer-tagline {
-          font-size: 10px;
-          letter-spacing: 1.6px;
-          color: #D8B875;
-        }
-
-        .elvarin .footer-top h3 {
-          color: #D8B875;
-          font-size: 13px;
-          margin: 10px 0 25px;
-          letter-spacing: .6px;
-        }
-
-        .elvarin .footer-links a {
-          display: block;
-          color: #CFDCD2;
-          font-size: 13px;
-          margin-bottom: 16px;
-          transition: color .25s;
-        }
-
-        .elvarin .footer-links a:hover {
-          color: #E5C685;
-        }
-
-        .elvarin .footer-symbol {
-          font-size: 45px;
-          color: #D1B16F;
-        }
-
-        .elvarin .footer-bottom {
-          border-top: 1px solid #41685A;
-          margin-top: 70px;
-          padding-top: 25px;
-          display: flex;
-          justify-content: space-between;
-          gap: 25px;
-          color: #BCCDC2;
-          font-size: 11px;
-          line-height: 1.7;
-        }
-
-        .elvarin .back-to-top {
-          position: fixed;
-          bottom: 25px;
-          right: 22px;
-          z-index: 50;
-          background: #C9A65F;
-          color: #083C31;
-          border: 1px solid #E7CB91;
-          width: 44px;
-          height: 44px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border-radius: 50%;
-          font-size: 24px;
-          box-shadow: 0 5px 20px rgba(0,0,0,.12);
-        }
-
-        @media (max-width: 1140px) {
-          .elvarin .navigation {
-            gap: 12px;
-          }
-
-          .elvarin .navigation a {
-            font-size: 11px;
-          }
-
-          .elvarin .hero-layout {
-            gap: 38px;
-          }
-
-          .elvarin .about-layout,
-          .elvarin .identity-layout {
-            gap: 50px;
-          }
-        }
-
-        @media (max-width: 900px) {
-          .elvarin .menu-toggle {
-            width: 43px;
-            height: 43px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            background: #F2F0E9;
-            border: 1px solid #DCD8CC;
-            cursor: pointer;
-          }
-
-          .elvarin .menu-toggle span {
-            display: block;
-            width: 19px;
-            height: 2px;
-            background: #064535;
-          }
-
-          .elvarin .navigation {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #FFFEFA;
-            box-shadow: 0 20px 25px rgba(0,0,0,.08);
-            padding: 20px 28px 26px;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0;
-            border-bottom: 1px solid #E2DCCA;
-            max-height: 75vh;
-            overflow-y: auto;
-          }
-
-          .elvarin .navigation-open {
-            display: flex;
-          }
-
-          .elvarin .navigation a {
-            padding: 12px 0;
-            font-size: 14px;
-            border-bottom: 1px solid #F0ECE2;
-          }
-
-          .elvarin .mobile-portal {
-            display: block;
-            color: #064535;
-            font-weight: 700;
-          }
-
-          .elvarin .hero-layout,
-          .elvarin .about-layout,
-          .elvarin .identity-layout,
-          .elvarin .admission-layout,
-          .elvarin .environment-heading {
+        .elvarin-home section[id],
+        .elvarin-home footer[id] {
+          scroll-margin-top: 110px;
+        }
+
+        @media (max-width: 1100px) {
+          .hero-grid,
+          .two-col,
+          .student-grid,
+          .cta-grid {
             grid-template-columns: 1fr;
           }
 
-          .elvarin .hero-layout {
-            padding-top: 65px;
-            padding-bottom: 75px;
+          .pillars-grid {
+            grid-template-columns: repeat(3, 1fr);
           }
 
-          .elvarin .hero-art {
-            max-width: 520px;
+          .showcase-grid,
+          .essentials-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .operations-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+
+          .footer-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 860px) {
+          .header-inner {
+            flex-wrap: wrap;
+            padding: 14px 0;
+          }
+
+          .nav-links {
+            order: 3;
             width: 100%;
-            margin: auto;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 6px;
           }
 
-          .elvarin .pillars-grid {
-            grid-template-columns: repeat(2,minmax(0,1fr));
+          .identity-grid,
+          .pillars-grid,
+          .operations-grid {
+            grid-template-columns: 1fr 1fr;
           }
 
-          .elvarin .learning-layout {
+          .section,
+          .cta-section {
+            padding: 78px 0;
+          }
+
+          .footer-grid {
             grid-template-columns: 1fr;
-          }
-
-          .elvarin .footer-top {
-            grid-template-columns: repeat(2,minmax(0,1fr));
-          }
-
-          .elvarin .identity-image {
-            min-height: 470px;
-          }
-
-          .elvarin .about-image-tag {
-            right: 0;
-          }
-
-          .elvarin .section {
-            padding: 85px 0;
           }
         }
 
-        @media (max-width: 600px) {
-          .elvarin .container {
-            padding: 0 18px;
+        @media (max-width: 580px) {
+          .container {
+            width: min(100% - 28px, 1180px);
           }
 
-          .elvarin .top-bar {
+          .top-strip {
             font-size: 8px;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
           }
 
-          .elvarin .top-star {
-            margin: 0 5px;
+          .brand-title {
+            font-size: 22px;
           }
 
-          .elvarin .header-inner {
-            min-height: 73px;
-            gap: 8px;
+          .brand-subtitle {
+            font-size: 9px;
+            letter-spacing: 3px;
           }
 
-          .elvarin .logo-img {
-            width: 43px;
-            height: 43px;
+          .hero-copy h1 {
+            font-size: 42px;
           }
 
-          .elvarin .brand {
-            gap: 7px;
-          }
-
-          .elvarin .brand-words strong {
-            font-size: 19px;
-          }
-
-          .elvarin .brand-words small {
-            font-size: 8px;
-            letter-spacing: 3.7px;
-          }
-
-          .elvarin .portal-button {
-            display: none;
-          }
-
-          .elvarin .hero-layout {
-            gap: 45px;
-            padding-top: 58px;
-            padding-bottom: 60px;
-          }
-
-          .elvarin .hero h1 {
-            font-size: clamp(48px,12vw,67px);
-            letter-spacing: -1.5px;
-          }
-
-          .elvarin .hero-intro {
+          .hero-text,
+          .body-text,
+          .section-head p:last-child {
             font-size: 15px;
           }
 
-          .elvarin .hero-buttons {
+          .identity-grid,
+          .pillars-grid,
+          .operations-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .hero-actions,
+          .cta-actions {
             flex-direction: column;
           }
 
-          .elvarin .hero-buttons .btn {
+          .btn,
+          .portal-btn {
             width: 100%;
           }
 
-          .elvarin .hero-signature {
-            margin-top: 40px;
-            font-size: 9px;
-            letter-spacing: 1.3px;
-          }
-
-          .elvarin .hero-art-inner {
-            min-height: 350px;
-            padding: 30px;
-          }
-
-          .elvarin .hero-emblem {
-            max-width: 240px;
-          }
-
-          .elvarin .hero-art-title {
-            font-size: 7px;
-            letter-spacing: 1px;
-            gap: 5px;
-          }
-
-          .elvarin .hero-art-footer {
-            font-size: 8px;
-            letter-spacing: 1px;
-          }
-
-          .elvarin .trust-row {
-            grid-template-columns: 1fr;
-            gap: 12px;
-            font-size: 10px;
-          }
-
-          .elvarin .section {
-            padding: 70px 0;
-          }
-
-          .elvarin .section-title {
-            font-size: clamp(35px,9vw,46px);
-          }
-
-          .elvarin .about-image-shell {
-            aspect-ratio: 4 / 3.8;
-          }
-
-          .elvarin .about-image-tag {
-            bottom: 40px;
-            right: 0;
-            padding: 17px;
-            font-size: 9px;
-          }
-
-          .elvarin .pillars-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .elvarin .pillar-card {
-            min-height: 230px;
-          }
-
-          .elvarin .philosophy-section {
-            padding: 73px 0;
-          }
-
-          .elvarin .philosophy-section blockquote {
-            font-size: 24px;
-          }
-
-          .elvarin .gallery-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .elvarin .gallery-featured {
-            grid-column: auto;
-          }
-
-          .elvarin .gallery-featured .gallery-image-wrap,
-          .elvarin .gallery-image-wrap {
-            aspect-ratio: 1.3 / 1;
-          }
-
-          .elvarin .identity-image {
-            min-height: 340px;
-          }
-
-          .elvarin .admission-panel {
-            min-height: auto;
-            padding: 35px 27px;
-          }
-
-          .elvarin .admission-panel h3 {
-            font-size: 29px;
-          }
-
-          .elvarin .footer-top {
-            grid-template-columns: 1fr;
-            gap: 27px;
-          }
-
-          .elvarin .footer-bottom {
+          .footer-bottom {
             flex-direction: column;
-            margin-top: 42px;
-          }
-
-          .elvarin .footer-brand strong {
-            font-size: 26px;
-          }
-
-          .elvarin .back-to-top {
-            right: 16px;
-            bottom: 17px;
-            width: 40px;
-            height: 40px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .elvarin *,
-          .elvarin *::before,
-          .elvarin *::after {
-            animation-duration: 0.01ms !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
-
-          .elvarin .reveal,
-          .elvarin .reveal.animate-ready {
-            opacity: 1 !important;
-            transform: none !important;
           }
         }
       `}</style>
